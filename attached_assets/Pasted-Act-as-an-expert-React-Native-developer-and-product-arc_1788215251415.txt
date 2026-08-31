@@ -1,0 +1,60 @@
+Act as an expert React Native developer and product architect. I need you to build a complete, production-ready mobile application called "Multi-App Guard". 
+
+### 1. CORE CONCEPT & TECH STACK
+- **Framework:** React Native (Expo SDK 50+ or Bare Workflow - choose whichever ensures native module compatibility).
+- **Language:** TypeScript.
+- **Styling:** NativeWind (Tailwind CSS for RN) + Custom Animations.
+- **Backend:** Supabase (Auth, Database, Realtime subscriptions).
+- **Payments:** RevenueCat (for managing iOS/Android subscriptions seamlessly).
+- **State Management:** Zustand.
+- **Navigation:** Expo Router (File-based routing).
+
+### 2. APP FUNCTIONALITY & UI DESIGN
+The app is a "Sci-Fi Cyberpunk System Monitor". 
+- **Visual Style:** Dark mode (#050505 background), neon cyan (#00F3FF) and electric blue accents, grid overlays, scanline animations, and glowing borders. Use `react-native-reanimated` for smooth pulsing glows and scanning effects.
+- **Core Feature:** A dashboard that displays the "Guardian Status" of connected devices. 
+- **API Integration:** Connect to this endpoint: `https://multi-app-guard-api.vercel.app/api/status`. 
+  - Fetch status using `deviceId`.
+  - Display states: IDLE (Blue), SCANNING (Amber animation), ACTIVE (Cyan glow), ERROR (Red pulse).
+- **Device Management:** Allow users to add/remove device IDs. Store these locally with MMKV and sync to Supabase if logged in.
+
+### 3. AUTHENTICATION & USER SYSTEM
+- Implement Email/Password and Google OAuth via Supabase Auth.
+- Create a "Neural Link" login screen matching the sci-fi theme.
+- Protected routes: Dashboard is only accessible when authenticated OR in "Guest Mode" (limited features).
+
+### 4. SUBSCRIPTION & PAYMENT ARCHITECTURE (CRITICAL)
+Implement a tiered subscription model using RevenueCat:
+- **Free Tier:** 
+  - 1 Device Slot.
+  - Basic Status Monitoring (No history).
+  - Standard refresh rate (30s).
+- **Pro Tier ($4.99/month or $49.99/year):**
+  - Unlimited Device Slots.
+  - Real-time updates (WebSocket/Supabase Realtime).
+  - 30-day Activity History.
+  - Priority Support Badge.
+  - Custom Theme Colors.
+- **Implementation Details:**
+  - Create a `useSubscription` hook that checks Entitlements via RevenueCat.
+  - Build a "Upgrade to Pro" modal with a sci-fi "Unlock Neural Capacity" design.
+  - Handle restore purchases, trial periods, and grace periods.
+  - Gate premium features in the UI (e.g., blur out "History" tab for free users with a lock icon).
+
+### 5. PROJECT STRUCTURE REQUIREMENTS
+- `/app`: Expo Router screens (index, login, dashboard, settings, paywall).
+- `/components`: Reusable UI atoms (NeonButton, ScanLineOverlay, StatusRing).
+- `/services`: API clients (Supabase, Vercel API, RevenueCat).
+- `/store`: Zustand stores (authStore, deviceStore, subscriptionStore).
+- `/assets`: Fonts (Orbitron or similar sci-fi font), icons.
+
+### 6. EXECUTION PLAN
+1. Initialize the project with all dependencies installed.
+2. Set up Supabase client and RevenueCat configuration files (use placeholder keys for now).
+3. Build the Auth flow first.
+4. Build the Core Dashboard UI with animations.
+5. Integrate the Vercel API for status checking.
+6. Implement the Paywall and Subscription gating logic.
+7. Add Polish: Haptic feedback on button presses, sound effects for status changes (optional).
+
+Please start by scaffolding the project structure and installing all necessary packages. Then, proceed step-by-step, asking me for confirmation before moving to the next major module. Do not hallucinate API keys; use environment variables (.env) for all secrets.

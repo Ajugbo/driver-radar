@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/multi-app-guard/"
+title = "Multi-App Guard"
+description = "A cyberpunk system monitor for tracking the guardian status of connected devices, with guest mode, local device management, live status checks, and subscription-aware premium features."
+version = "1.0.0"
+id = "artifacts/multi-app-guard"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/multi-app-guard/" ]
+localPort = 22996
+
+[services.development]
+run = "pnpm --filter @workspace/multi-app-guard run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/multi-app-guard", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/multi-app-guard", "run", "serve" ]
+
+[services.env]
+PORT = "22996"
+BASE_PATH = "/multi-app-guard/"
