@@ -1,0 +1,1 @@
+{"version":3,"file":"driver.d.ts","sourceRoot":"","sources":["../../../src/generated/types/driver.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,0BAA0B,CAAC;AAEvE,MAAM,WAAW,MAAM;IACrB,EAAE,EAAE,MAAM,CAAC;IACX,KAAK,EAAE,MAAM,CAAC;IACd,gBAAgB,EAAE,sBAAsB,CAAC;IACzC,SAAS,EAAE,IAAI,CAAC;CACjB"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"driverPreferencesInput.d.ts","sourceRoot":"","sources":["../../../src/generated/types/driverPreferencesInput.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AAEH,MAAM,WAAW,sBAAsB;IACrC,iBAAiB;IACjB,UAAU,EAAE,MAAM,CAAC;IACnB,mBAAmB;IACnB,iBAAiB,EAAE,MAAM,CAAC;IAC1B;;;SAGK;IACL,iBAAiB,CAAC,EAAE,MAAM,GAAG,IAAI,CAAC;IAClC,gBAAgB,EAAE,MAAM,EAAE,CAAC;CAC5B"}
