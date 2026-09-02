@@ -4,6 +4,10 @@
     {
       "src": "api/**/*.ts",
       "use": "@vercel/node"
+    },
+    {
+      "src": "artifacts/api-server/src/**/*.ts",
+      "use": "@vercel/node"
     }
   ]
 }
