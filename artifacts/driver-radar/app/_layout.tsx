@@ -13,16 +13,22 @@ import {
 } from '@expo-google-fonts/inter';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { setBaseUrl } from '@workspace/api-client-react';
+import { DriverProvider } from '@/context/DriverContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
+setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
+
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerBackTitle: 'Back' }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="auth" options={{ presentation: 'modal', headerShown: false }} />
+      <Stack.Screen name="paywall" options={{ presentation: 'modal', headerShown: false }} />
     </Stack>
   );
 }
@@ -49,7 +55,9 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView>
             <KeyboardProvider>
-              <RootLayoutNav />
+              <DriverProvider>
+                <RootLayoutNav />
+              </DriverProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>

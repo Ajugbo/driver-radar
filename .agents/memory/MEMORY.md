@@ -1,0 +1,1 @@
+- [OpenAPI Zod compatibility](openapi-zod-compatibility.md) — Orval-generated schemas use Zod 4 helpers such as email() and int(); keep the shared Zod catalog aligned.
