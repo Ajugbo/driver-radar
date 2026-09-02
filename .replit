@@ -23,3 +23,6 @@ timeoutMs = 20000
 
 [userenv.shared]
 EXPO_PUBLIC_GUARD_API_URL = "https://multi-app-guard-api.vercel.app/api/status"
+
+[nix]
+channel = "stable-25_05"

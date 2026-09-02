@@ -1,0 +1,198 @@
+Skip to content
+
+
+
+
+
+
+Publish a sharable version of your App, unaffected by changes made in the project editor
+Manage custom domains for your published project
+View traffic, request metrics, resource usage, and analytics for your deployed App
+Find, fix, and monitor SEO and growth opportunities
+Stores structured data such as user profiles, game scores, and product catalogs.
+Let users log in to your App using a prebuilt login page
+Find, fix, and monitor security vulnerabilities and privacy issues
+Host and save uploads like images, videos, and documents
+Connect to Replit-native and external services
+Version control for your App
+Store sensitive information (like API keys) securely in your App
+Manage skills that extend Agent capabilities
+Domains
+
+Manage custom domains for your published project
+Your project is not published yet. Your domains will not be live until you publish
+Use a domain you already own
+Attach a domain or subdomain you already own to your project
+A subscription is required. Navigate to Account > Billing to resolve.
+Buy a new domain
+Buy and automatically connect a new domain. Replit analyzes your app's name, purpose, and target audience to suggest domain options that are memorable, brand-aligned, and available.
+A subscription is required. Navigate to Account > Billing to resolve.
+BACKEND & DATABASE: Database: Existing PostgreSQL database hosted on NeonDB. Do NOT create a new Supabase or local DB. ORM: Use Drizzle ORM or Prisma to interact with the existing NeonDB schema safely. Connection: All database credentials must be stored strictly in Replit's Secrets/Environment Variables tab (DATABASE_URL). Never hardcode credentials. Schema: I will provide the existing table structure/schema. Generate the Drizzle/Prisma models to match my current NeonDB tables exactly. Auth: Since we are not using Supabase Auth, implement custom JWT-based authentication using bcryptjs for password hashing and jsonwebtoken for session management, storing user sessions in the existing NeonDB users table.
+
+Free
+1 day ago
+I can switch the app to Neon-backed accounts and JWT sessions, but I need the existing table definition first so I don’t invent columns or risk changing your database schema. I’m checking the current server/database wiring now, then I’ll ask for the exact schema in the smallest useful format.
+
+
+
+7 actions
+The current project has an empty Drizzle schema and no auth routes yet, so I won’t guess the NeonDB table layout. Please provide the existing schema before I add models, migrations, or JWT queries; I’ll use DATABASE_URL only from Replit’s Secrets/Environment Variables and will not create or alter tables without matching definitions.
+
+
+Please share the existing NeonDB schema
+Declined.
+
+Worked for 18 seconds
+"Confirmed. Do NOT create, alter, or guess any tables. I will provide the exact existing NeonDB schema below. Use Drizzle ORM with process.env.DATABASE_URL from Replit Secrets only. All auth and user management must map strictly to these existing columns. Proceed only after verifying the schema matches."
+
+Free
+1 day ago
+Considering user input requirements
+
+Considering user input requirements
+I received your confirmation, but the actual NeonDB schema was not included. I can’t safely create Drizzle models or auth queries until you paste the CREATE TABLE definitions or upload the schema export, especially for the users table and session-related columns.
+
+
+
+Worked for 8 seconds
+
+Pasted-STOP-CURRENT-BUILD-The-Guardian-Status-UI-is-incorrect-_1788219302803.txt
+Free
+1 day ago
+Reading attached file
+
+Reading attached file
+I’ll read the new correction brief and align the existing mobile UI to it, without touching the database or auth work that is still waiting on the exact NeonDB schema.
+
+
+
+5 actions
+Understood: this is being rebuilt as a Nigerian driver e-hailing aggregator, not a security monitor. I’ll create a fresh driver-focused mobile app with NGN fares, radar-style ride feed, configurable acceptance filters, mocked platform listeners, JWT auth, and the requested Neon/Drizzle schema.
+
+
+
+4 actions
+The replacement app is now scaffolded. I’m wiring the requested backend contract first so the mobile screens use real API shapes: drivers, preferences, platform connections, ride requests, subscriptions, and JWT auth against the existing Neon connection. I’ll keep the listener mocked, as requested, and won’t add unrelated platform integrations yet.
+
+
+
+16 actions
+The API contract generated correctly, but the workspace’s Zod version is older than the generator’s new output (z.email()/z.int()), so the shared type build stops before backend wiring. I’m aligning that dependency rather than hand-editing generated files, then I’ll continue with the schema and routes.
+
+
+
+12 actions
+The generator issue is a workspace setup mismatch, not an app design problem. The package installer refused to update the workspace root without an explicit workspace flag; I’m retrying with that flag and then regenerating the API types.
+
+
+
+7 actions
+The contract is now generated successfully. I’m moving on to the actual Neon/Drizzle layer and JWT routes, then I’ll build the driver screens against the generated API types and keep ride sources mocked in the UI.
+
+
+
+Show less
+
+Searched for "^export (const|function…"
+Implementing database changes
+
+Implementing database changes
+
+Installed dependencies
+
+Opened index.ts
+
+Searched for "^export const "
+
+Created auth.ts
+
+Created auth.ts
+
+Created preferences.ts
+
+Created rides.ts
+
+Created platforms.ts
+
+Edited index.ts
+Troubleshooting patch issues
+
+Troubleshooting patch issues
+The auth and API route modules are added. The schema file itself rejected the first replacement because its scaffold comments differ slightly from the earlier snapshot; I’m replacing only that file now, then I’ll run the database schema push and backend typecheck.
+
+
+
+16 actions
+
+Worked for 6 minutes
+You've reached your daily free quota limit. It will reset at 12:00 AM UTC.
+
+
+Worked for 1 second
+You've reached your daily free quota limit. It will reset at 12:00 AM UTC.
+
+Agent activity I’ll read the new correction brief and align the existing mobile UI to it, without touching the database or auth work that is still waiting on the exact NeonDB schema. Agent activity Agent activity Understood: this is being rebuilt as a Nigerian driver e-hailing aggregator, not a security monitor. I’ll create a fresh driver-focused mobile app with NGN fares, radar-style ride feed, configurable acceptance filters, mocked platform listeners, JWT auth, and the requested Neon/Drizzle schema. Agent activity Agent activity The replacement app is now scaffolded. I’m wiring the requested backend contract first so the mobile screens use real API shapes: drivers, preferences, platform connections, ride requests, subscriptions, and JWT auth against the existing Neon connection. I’ll keep the listener mocked, as requested, and won’t add unrelated platform integrations yet. Agent activity Agent activity The API contract generated correctly, but the workspace’s Zod version is older than the generator’s new output (`z.email()`/`z.int()`), so the shared type build stops before backend wiring. I’m aligning that dependency rather than hand-editing generated files, then I’ll continue with the schema and routes. Agent activity The generator issue is a workspace setup mismatch, not an app design problem. The package installer refused to update the workspace root without an explicit workspace flag; I’m retrying with that flag and then regenerating the API types. Agent activity Agent activity The contract is now generated successfully. I’m moving on to the actual Neon/Drizzle layer and JWT routes, then I’ll build the driver screens against the generated API types and keep ride sources mocked in the UI. Agent activity Agent activity The auth and API route modules are added. The schema file itself rejected the first replacement because its scaffold comments differ slightly from the earlier snapshot; I’m replacing only that file now, then I’ll run the database schema push and backend typecheck. Agent activity Agent activity Agent activity Agent activity Agent activity Agent activity
+
+Scroll to latest
+
+Message Agent...
+
+
+
+
+
+
+
+
+
+
+Pasted-STOP-CURRENT-BUILD-The-Guardian-Status-UI-is-incorrect-_1788219302803.txt
+STOP CURRENT BUILD. The "Guardian Status" UI is incorrect. Discard it completely.
+
+We are building a PRO E-HAILING DRIVER AGGREGATOR APP FOR NIGERIA. 
+The core value proposition: A single interface for drivers to receive, filter, and accept ride requests from multiple platforms (Uber, Bolt, etc.) simultaneously, with full NGN currency support.
+
+### 1. CORE FUNCTIONALITY (NON-NEGOTIABLE)
+- **Multi-Platform Listener:** Simultaneously listen for incoming ride orders from connected e-hailing APIs.
+- **Unified Request Feed:** Display all incoming rides in one real-time stream, tagged by source platform. ALL AMOUNTS IN NGN ().
+- **Smart Filtering Engine (CRITICAL):** Drivers MUST be able to set custom acceptance parameters BEFORE going online:
+  - 💰 Minimum Fare Threshold (e.g., "Only show rides > ₦2,500")
+  -  Maximum Pickup Radius (e.g., "Ignore pickups > 3km away")
+  - ⭐ Minimum Platform Rating (optional)
+  - 🚫 Blacklisted Zones/Areas (Abuja-specific or custom)
+- **One-Tap Accept/Decline:** Unified action buttons that dispatch the acceptance back to the specific source platform's API.
+- **Real-Time Map:** Visualize nearby incoming requests with ping animations. Show distances in KM, fares in ₦.
+
+### 2. UI/UX DESIGN
+- **Aesthetic:** Dark, futuristic, sci-fi/cyberpunk theme (Neon Cyan #00F3FF accents on #050505 background).
+- **Dashboard:** Central "Radar" view showing active filters and live request count. All monetary values displayed as "₦X,XXX".
+- **Settings Panel:** Dedicated screen for configuring Min Fare (₦), Pickup Radius (km), and other parameters with sleek sliders/toggles.
+- **Animations:** Pulse effects for new pings, smooth transitions between states.
+
+### 3. TECH STACK & BACKEND
+- **Frontend:** React Native (Expo SDK 50+)
+- **Database:** NeonDB (PostgreSQL) - Create a fresh schema via Drizzle ORM.
+- **Auth:** JWT-based auth (Email/Password + Google OAuth). Store users in NeonDB.
+- **Payments:** RevenueCat integration.
+  - Free Tier: 1 Platform Connection, Basic Filters.
+  - Pro Tier (₦4,999/month or ₦49,999/year): Unlimited Platforms, Advanced Filters (Min Fare, Radius), Priority Ping, Ride History Analytics.
+- **API Structure:** Vercel-compatible `/api` folder for serverless functions handling platform webhooks and DB queries.
+
+### 4. DATABASE SCHEMA REQUIREMENTS (NEONDB)
+Create tables for:
+- `drivers` (id, email, password_hash, subscription_tier, created_at)
+- `driver_preferences` (driver_id, min_fare_ngn INTEGER, max_pickup_radius_km FLOAT, blacklisted_zones_json, updated_at)
+- `platform_connections` (id, driver_id, platform_name, api_token_encrypted, is_active)
+- `ride_requests` (id, driver_id, platform_source, fare_amount_ngn INTEGER, pickup_distance_km FLOAT, status, timestamp)
+- `subscriptions` (driver_id, revenuecat_customer_id, tier, expires_at)
+
+### 5. EXECUTION ORDER
+1. Scaffold React Native project with dark sci-fi theme. Set default locale/currency to NGN (₦).
+2. Set up NeonDB connection + Drizzle ORM + Schema migration.
+3. Build Auth flow + Driver Preferences Settings Screen (Min Fare in ₦, Radius in km sliders).
+4. Build Unified Dashboard with Real-Time Request Feed (all amounts in ₦).
+5. Integrate RevenueCat Paywall + Subscription gating for Pro filters (prices in ₦).
+6. Mock the Multi-Platform Listener logic (we will connect real APIs later).
+7. Ensure all secrets use Replit Secrets / ENV vars. Add vercel.json config.
+
+START NOW. Confirm you understand we are building an E-HAILING AGGREGATOR FOR NIGERIAN DRIVERS with CUSTOM DRIVER FILTERS in NGN, not a security app.

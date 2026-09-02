@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/"
+title = "Driver Radar"
+description = "A Nigerian e-hailing command center that brings ride requests from multiple platforms into one radar feed, with NGN fares, driver filters, one-tap actions, and subscription-aware controls."
+version = "1.0.0"
+id = "artifacts/driver-radar"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/" ]
+localPort = 19236
+
+[services.development]
+run = "pnpm --filter @workspace/driver-radar run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/driver-radar", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/driver-radar", "run", "serve" ]
+
+[services.env]
+PORT = "19236"
+BASE_PATH = "/"

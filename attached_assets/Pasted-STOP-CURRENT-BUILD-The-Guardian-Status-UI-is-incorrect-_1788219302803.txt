@@ -1,0 +1,49 @@
+STOP CURRENT BUILD. The "Guardian Status" UI is incorrect. Discard it completely.
+
+We are building a PRO E-HAILING DRIVER AGGREGATOR APP FOR NIGERIA. 
+The core value proposition: A single interface for drivers to receive, filter, and accept ride requests from multiple platforms (Uber, Bolt, etc.) simultaneously, with full NGN currency support.
+
+### 1. CORE FUNCTIONALITY (NON-NEGOTIABLE)
+- **Multi-Platform Listener:** Simultaneously listen for incoming ride orders from connected e-hailing APIs.
+- **Unified Request Feed:** Display all incoming rides in one real-time stream, tagged by source platform. ALL AMOUNTS IN NGN ().
+- **Smart Filtering Engine (CRITICAL):** Drivers MUST be able to set custom acceptance parameters BEFORE going online:
+  - 💰 Minimum Fare Threshold (e.g., "Only show rides > ₦2,500")
+  -  Maximum Pickup Radius (e.g., "Ignore pickups > 3km away")
+  - ⭐ Minimum Platform Rating (optional)
+  - 🚫 Blacklisted Zones/Areas (Abuja-specific or custom)
+- **One-Tap Accept/Decline:** Unified action buttons that dispatch the acceptance back to the specific source platform's API.
+- **Real-Time Map:** Visualize nearby incoming requests with ping animations. Show distances in KM, fares in ₦.
+
+### 2. UI/UX DESIGN
+- **Aesthetic:** Dark, futuristic, sci-fi/cyberpunk theme (Neon Cyan #00F3FF accents on #050505 background).
+- **Dashboard:** Central "Radar" view showing active filters and live request count. All monetary values displayed as "₦X,XXX".
+- **Settings Panel:** Dedicated screen for configuring Min Fare (₦), Pickup Radius (km), and other parameters with sleek sliders/toggles.
+- **Animations:** Pulse effects for new pings, smooth transitions between states.
+
+### 3. TECH STACK & BACKEND
+- **Frontend:** React Native (Expo SDK 50+)
+- **Database:** NeonDB (PostgreSQL) - Create a fresh schema via Drizzle ORM.
+- **Auth:** JWT-based auth (Email/Password + Google OAuth). Store users in NeonDB.
+- **Payments:** RevenueCat integration.
+  - Free Tier: 1 Platform Connection, Basic Filters.
+  - Pro Tier (₦4,999/month or ₦49,999/year): Unlimited Platforms, Advanced Filters (Min Fare, Radius), Priority Ping, Ride History Analytics.
+- **API Structure:** Vercel-compatible `/api` folder for serverless functions handling platform webhooks and DB queries.
+
+### 4. DATABASE SCHEMA REQUIREMENTS (NEONDB)
+Create tables for:
+- `drivers` (id, email, password_hash, subscription_tier, created_at)
+- `driver_preferences` (driver_id, min_fare_ngn INTEGER, max_pickup_radius_km FLOAT, blacklisted_zones_json, updated_at)
+- `platform_connections` (id, driver_id, platform_name, api_token_encrypted, is_active)
+- `ride_requests` (id, driver_id, platform_source, fare_amount_ngn INTEGER, pickup_distance_km FLOAT, status, timestamp)
+- `subscriptions` (driver_id, revenuecat_customer_id, tier, expires_at)
+
+### 5. EXECUTION ORDER
+1. Scaffold React Native project with dark sci-fi theme. Set default locale/currency to NGN (₦).
+2. Set up NeonDB connection + Drizzle ORM + Schema migration.
+3. Build Auth flow + Driver Preferences Settings Screen (Min Fare in ₦, Radius in km sliders).
+4. Build Unified Dashboard with Real-Time Request Feed (all amounts in ₦).
+5. Integrate RevenueCat Paywall + Subscription gating for Pro filters (prices in ₦).
+6. Mock the Multi-Platform Listener logic (we will connect real APIs later).
+7. Ensure all secrets use Replit Secrets / ENV vars. Add vercel.json config.
+
+START NOW. Confirm you understand we are building an E-HAILING AGGREGATOR FOR NIGERIAN DRIVERS with CUSTOM DRIVER FILTERS in NGN, not a security app.

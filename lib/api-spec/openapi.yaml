@@ -10,6 +10,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Driver authentication
+  - name: preferences
+    description: Driver acceptance preferences
+  - name: rides
+    description: Unified ride request feed
+  - name: platforms
+    description: Connected e-hailing platforms
 paths:
   /healthz:
     get:
@@ -24,7 +32,145 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/register:
+    post:
+      operationId: registerDriver
+      tags: [auth]
+      summary: Register a driver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthCredentials"
+      responses:
+        "201":
+          description: Driver registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "409":
+          description: Email already registered
+  /auth/login:
+    post:
+      operationId: loginDriver
+      tags: [auth]
+      summary: Log in a driver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthCredentials"
+      responses:
+        "200":
+          description: Driver logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+  /preferences:
+    get:
+      operationId: getDriverPreferences
+      tags: [preferences]
+      summary: Get driver preferences
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current acceptance preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DriverPreferences"
+    put:
+      operationId: updateDriverPreferences
+      tags: [preferences]
+      summary: Update driver preferences
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DriverPreferencesInput"
+      responses:
+        "200":
+          description: Updated acceptance preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DriverPreferences"
+  /ride-requests:
+    get:
+      operationId: listRideRequests
+      tags: [rides]
+      summary: List unified ride requests
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Ride request stream
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RideRequest"
+  /ride-requests/{id}/decision:
+    post:
+      operationId: decideRideRequest
+      tags: [rides]
+      summary: Accept or decline a ride request
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RideDecision"
+      responses:
+        "200":
+          description: Updated ride request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideRequest"
+        "404":
+          description: Ride request not found
+  /platform-connections:
+    get:
+      operationId: listPlatformConnections
+      tags: [platforms]
+      summary: List connected platform sources
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Connected platforms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlatformConnection"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +179,106 @@ components:
           type: string
       required:
         - status
+    AuthCredentials:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+      required: [email, password]
+    Driver:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+          format: email
+        subscriptionTier:
+          type: string
+          enum: [free, pro]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, email, subscriptionTier, createdAt]
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        driver:
+          $ref: "#/components/schemas/Driver"
+      required: [token, driver]
+    DriverPreferencesInput:
+      type: object
+      properties:
+        minFareNgn:
+          type: integer
+          minimum: 0
+        maxPickupRadiusKm:
+          type: number
+          minimum: 0.5
+        minPlatformRating:
+          type: number
+          minimum: 0
+          maximum: 5
+          nullable: true
+        blacklistedZones:
+          type: array
+          items:
+            type: string
+      required: [minFareNgn, maxPickupRadiusKm, blacklistedZones]
+    DriverPreferences:
+      allOf:
+        - $ref: "#/components/schemas/DriverPreferencesInput"
+        - type: object
+          properties:
+            driverId:
+              type: integer
+            updatedAt:
+              type: string
+              format: date-time
+          required: [driverId, updatedAt]
+    RideRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        platformSource:
+          type: string
+        fareAmountNgn:
+          type: integer
+        pickupDistanceKm:
+          type: number
+        pickupZone:
+          type: string
+        destinationZone:
+          type: string
+        status:
+          type: string
+          enum: [pending, accepted, declined, expired]
+        timestamp:
+          type: string
+          format: date-time
+      required: [id, platformSource, fareAmountNgn, pickupDistanceKm, pickupZone, destinationZone, status, timestamp]
+    RideDecision:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [accept, decline]
+      required: [action]
+    PlatformConnection:
+      type: object
+      properties:
+        id:
+          type: integer
+        platformName:
+          type: string
+        isActive:
+          type: boolean
+      required: [id, platformName, isActive]
 
