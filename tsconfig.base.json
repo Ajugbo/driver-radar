@@ -6,7 +6,6 @@
     "module": "commonjs",
     "moduleResolution": "node16",
     "allowImportingTsExtensions": true,
-    "noEmit": true,
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": false,
