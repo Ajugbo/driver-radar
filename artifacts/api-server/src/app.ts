@@ -1,12 +1,14 @@
 import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
-import pinoHttp = require("pino-http");
-import router from "./routes.js";
-import { logger } from "./lib/logger.js";
+// @ts-ignore - pino-http CJS export compatibility issue under Vercel ESM build
+import pinoHttp from "pino-http";
+import router from "./routes";
+import { logger } from "./lib/logger";
 
 const app: Express = express();
 
 app.use(
+  // @ts-ignore - pinoHttp is callable at runtime despite TS namespace type
   pinoHttp({
     logger,
     serializers: {
