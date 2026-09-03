@@ -1,6 +1,6 @@
 import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
-// @ts-ignore - pino-http CJS export compatibility
+// @ts-ignore - pino-http CJS export compatibility under node16
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
