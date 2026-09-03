@@ -1,9 +1,9 @@
 import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
-// @ts-ignore - pino-http CJS export compatibility issue under Vercel ESM build
+// @ts-ignore - pino-http CJS export compatibility
 import pinoHttp from "pino-http";
-import router from "./routes";
-import { logger } from "./lib/logger";
+import router from "./routes.js";
+import { logger } from "./lib/logger.js";
 
 const app: Express = express();
 
