@@ -1,0 +1,11 @@
+{
+  "remoteName": "origin",
+  "projects": [
+    {
+      "id": "prj_Pv3Zh7bPqnr5whA692m5NSzdnLQs",
+      "name": "driver-radar",
+      "directory": ".",
+      "orgId": "team_LFPTplj06jSi27S0n3vgep5R"
+    }
+  ]
+}

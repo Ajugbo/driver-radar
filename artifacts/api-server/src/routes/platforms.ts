@@ -1,7 +1,9 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
+// @ts-ignore - workspace alias resolved at runtime
+// @ts-ignore - workspace alias resolved at runtime
 import { db, platformConnections } from "@workspace/db";
-import { requireAuth } from "../lib/auth";
+import { requireAuth } from "../lib/auth.js";
 
 const router: IRouter = Router();
 

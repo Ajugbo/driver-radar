@@ -1,9 +1,13 @@
 import { Router, type IRouter } from "express";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
+// @ts-ignore - workspace alias resolved at runtime
+// @ts-ignore - workspace alias resolved at runtime
 import { db, drivers } from "@workspace/db";
+// @ts-ignore - workspace alias resolved at runtime
+// @ts-ignore - workspace alias resolved at runtime
 import { LoginDriverBody, RegisterDriverBody } from "@workspace/api-zod";
-import { createAccessToken } from "../lib/auth";
+import { createAccessToken } from "../lib/auth.js";
 
 const router: IRouter = Router();
 

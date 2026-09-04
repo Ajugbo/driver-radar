@@ -1,0 +1,13 @@
+{
+  "settings": {
+    "createdAt": 1788353360066,
+    "framework": null,
+    "devCommand": null,
+    "installCommand": "corepack enable && corepack prepare pnpm@10.0.0 --activate && pnpm install",
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}

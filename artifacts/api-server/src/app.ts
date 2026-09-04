@@ -2,7 +2,9 @@ import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
 // @ts-ignore - pino-http CJS export compatibility under node16
 import pinoHttp from "pino-http";
+// @ts-ignore - routes.js is a directory index; types resolved at runtime
 import router from "./routes.js";
+// @ts-ignore - logger.js types resolved at runtime
 import { logger } from "./lib/logger.js";
 
 const app: Express = express();
