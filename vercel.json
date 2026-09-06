@@ -2,11 +2,11 @@
   "version": 2,
   "functions": {
     "api/**/*.ts": {
+      "runtime": "@vercel/node@12.0.1",
       "maxDuration": 10
     }
   },
-  "buildCommand": "npm run vercel-build",
+  "buildCommand": "npm run typecheck",
   "installCommand": "npm install",
-  "outputDirectory": "public",
   "framework": null
 }
