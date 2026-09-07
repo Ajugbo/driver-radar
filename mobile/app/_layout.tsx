@@ -12,6 +12,7 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <DriverProvider>
           <Stack screenOptions={{ headerBackTitle: 'Back' }}>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="auth" options={{ presentation: 'modal', headerShown: false }} />
             <Stack.Screen name="paywall" options={{ presentation: 'modal', headerShown: false }} />

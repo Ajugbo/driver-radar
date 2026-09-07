@@ -1,16 +1,17 @@
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
 import { FilterSummary, RadarMap, RideCard, SectionLabel } from '@/components/RadarUI';
+import { DriverView } from '@/src/components/DriverView';
 import { useDriver, formatNgn } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
 export default function RadarScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { visibleRides, filters, rides, isListenerLive, toggleListener, acceptRide, declineRide, lastSync, driver } = useDriver();
+  const { visibleRides, filters, rides, isListenerLive, isFeedLoading, listenerError, toggleListener, acceptRide, declineRide, lastSync, driver } = useDriver();
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
   const pendingCount = visibleRides.length;
@@ -18,7 +19,7 @@ export default function RadarScreen() {
   const todayTotal = todayAccepted.reduce((total, ride) => total + ride.fare, 0);
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.background }]}>
+    <DriverView isLive={isListenerLive} isLoading={isFeedLoading} error={listenerError} newRide={visibleRides[0]} onToggle={toggleListener}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: topInset + 14, paddingBottom: bottomInset + 100 }}>
         <View style={styles.header}>
           <View>
@@ -27,21 +28,6 @@ export default function RadarScreen() {
           </View>
           <Pressable testID="profile-button" onPress={() => router.push('/auth')} style={[styles.avatar, { borderColor: colors.primary, backgroundColor: colors.accent }]}>
             <Text style={[styles.avatarText, { color: colors.primary }]}>{driver.email.slice(0, 1).toUpperCase()}</Text>
-          </Pressable>
-        </View>
-
-        <View style={[styles.statusCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.statusLeft}>
-            <View style={[styles.liveOrb, { backgroundColor: isListenerLive ? colors.success : colors.mutedForeground }]}>
-              <View style={[styles.liveOrbInner, { backgroundColor: colors.card }]} />
-            </View>
-            <View>
-              <Text style={[styles.statusLabel, { color: colors.foreground }]}>{isListenerLive ? 'LISTENER ONLINE' : 'LISTENER PAUSED'}</Text>
-              <Text style={[styles.statusSub, { color: colors.mutedForeground }]}>{isListenerLive ? 'Watching 3 platform sources' : 'Tap resume to scan again'}</Text>
-            </View>
-          </View>
-          <Pressable testID="listener-toggle" onPress={toggleListener} style={({ pressed }) => [styles.toggle, { borderColor: isListenerLive ? colors.success : colors.border, opacity: pressed ? 0.65 : 1 }]}>
-            <Ionicons name={isListenerLive ? 'pause' : 'play'} size={14} color={isListenerLive ? colors.success : colors.mutedForeground} />
           </Pressable>
         </View>
 
@@ -79,7 +65,7 @@ export default function RadarScreen() {
           )}
         </View>
       </ScrollView>
-    </View>
+    </DriverView>
   );
 }
 

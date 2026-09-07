@@ -38,6 +38,8 @@ interface DriverContextValue {
   token: string | null;
   isHydrated: boolean;
   isListenerLive: boolean;
+  isFeedLoading: boolean;
+  listenerError: string | null;
   isPro: boolean;
   lastSync: string;
   updateFilters: (next: Partial<Filters>) => void;
@@ -62,15 +64,6 @@ const defaultFilters: Filters = { minFare: 2500, maxRadius: 3, minRating: null, 
 const defaultPlatforms: Record<PlatformName, boolean> = { Uber: true, Bolt: true, inDrive: true };
 const demoDriver: DriverIdentity = { id: 0, email: 'demo@driverradar.ng', subscriptionTier: 'free' };
 
-function makeMockRide(index: number): Ride {
-  const options: Array<Omit<Ride, 'id' | 'timestamp' | 'status'>> = [
-    { platform: 'Uber', fare: 5300, distance: 1.6, pickup: 'Kubwa', dropoff: 'Garki', rating: 4.8, eta: '3 min' },
-    { platform: 'Bolt', fare: 3900, distance: 1.1, pickup: 'Wuse 2', dropoff: 'Maitama', rating: 4.91, eta: '2 min' },
-    { platform: 'inDrive', fare: 6100, distance: 2.7, pickup: 'Jabi', dropoff: 'Lugbe', rating: 4.73, eta: '5 min' },
-  ];
-  return { ...options[index % options.length], id: `live-${Date.now()}-${index}`, status: 'pending', timestamp: 'Just now' };
-}
-
 const DriverContext = createContext<DriverContextValue | null>(null);
 
 export function DriverProvider({ children }: { children: ReactNode }) {
@@ -83,7 +76,13 @@ export function DriverProvider({ children }: { children: ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [isListenerLive, setIsListenerLive] = useState(true);
   const [lastSync, setLastSync] = useState('Just now');
-  const remoteRides = useQuery({ queryKey: ['rides'], queryFn: api.rides, enabled: Boolean(token), staleTime: 15_000 });
+  const remoteRides = useQuery({
+    queryKey: ['rides'],
+    queryFn: api.rides,
+    enabled: Boolean(token) && isListenerLive,
+    staleTime: 15_000,
+    refetchInterval: isListenerLive ? 15_000 : false,
+  });
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
@@ -96,19 +95,15 @@ export function DriverProvider({ children }: { children: ReactNode }) {
     }).catch(() => setIsHydrated(true));
   }, []);
   useEffect(() => {
-    if (token && remoteRides.data?.rides) setRides(remoteRides.data.rides);
+    if (token && remoteRides.data?.rides) {
+      setRides(remoteRides.data.rides);
+      setLastSync('Just now');
+    }
   }, [remoteRides.data, token]);
   useEffect(() => {
     setAccessToken(token);
     if (isHydrated) AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ rides, filters, platforms, token, driver })).catch(() => undefined);
   }, [driver, filters, isHydrated, platforms, rides, token]);
-  useEffect(() => {
-    if (!isListenerLive) return;
-    let index = 0;
-    const interval = setInterval(() => { setRides((current) => [makeMockRide(index++), ...current].slice(0, 12)); setLastSync('Just now'); }, 18_000);
-    return () => clearInterval(interval);
-  }, [isListenerLive]);
-
   const visibleRides = useMemo(() => rides.filter((ride) =>
     ride.status === 'pending' && platforms[ride.platform] && ride.fare >= filters.minFare && ride.distance <= filters.maxRadius &&
     (filters.minRating === null || ride.rating >= filters.minRating) &&
@@ -125,14 +120,14 @@ export function DriverProvider({ children }: { children: ReactNode }) {
     setToken(response.token); setAccessToken(response.token); setDriver(response.driver); await queryClient.invalidateQueries({ queryKey: ['rides'] });
   };
   const value = useMemo<DriverContextValue>(() => ({
-    rides, visibleRides, filters, platforms, driver, token, isHydrated, isListenerLive, isPro: driver.subscriptionTier === 'pro', lastSync,
+    rides, visibleRides, filters, platforms, driver, token, isHydrated, isListenerLive, isFeedLoading: Boolean(token) && remoteRides.isLoading, listenerError: remoteRides.error instanceof Error ? remoteRides.error.message : remoteRides.error ? 'Live ride feed unavailable.' : null, isPro: driver.subscriptionTier === 'pro', lastSync,
     updateFilters: (next) => { updateFilters(next); if (token) api.preferences(next).catch(() => undefined); },
     togglePlatform: (platform) => setPlatforms((current) => ({ ...current, [platform]: !current[platform] })),
     toggleListener: () => { setIsListenerLive((current) => !current); Haptics.selectionAsync().catch(() => undefined); },
     acceptRide: (id) => markRide(id, 'accepted'), declineRide: (id) => markRide(id, 'declined'),
     login: (email, password) => authenticate('login', email, password), register: (email, password) => authenticate('register', email, password),
     continueAsDemo: () => { setToken(null); setAccessToken(null); setDriver(demoDriver); }, signOut: async () => { setToken(null); setAccessToken(null); setDriver(demoDriver); await AsyncStorage.removeItem(STORAGE_KEY); },
-  }), [driver, filters, isHydrated, isListenerLive, lastSync, platforms, rides, token, visibleRides]);
+  }), [driver, filters, isHydrated, isListenerLive, lastSync, platforms, remoteRides.error, remoteRides.isLoading, rides, token, visibleRides]);
   return <DriverContext.Provider value={value}>{children}</DriverContext.Provider>;
 }
 

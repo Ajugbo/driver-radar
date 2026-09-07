@@ -1,6 +1,6 @@
 import type { ApiRide, DriverProfile } from '../../packages/types';
 
-const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? '';
+const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? 'https://driver-radar.vercel.app';
 let accessToken: string | null = null;
 
 export function setAccessToken(token: string | null) {

@@ -4,11 +4,13 @@ import { DimensionValue, Pressable, StyleSheet, Text, View } from 'react-native'
 import { Filters, formatNgn, PlatformName, Ride } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 import React, { useEffect } from 'react';
+import { ScanlineOverlay } from '@/src/components/ScanlineOverlay';
+import cyberpunkColors from '@/src/components/colors';
 
 function platformColor(platform: PlatformName, colors: ReturnType<typeof useColors>) {
   if (platform === 'Uber') return colors.foreground;
   if (platform === 'Bolt') return colors.primary;
-  return colors.warning;
+  return cyberpunkColors.hotPink;
 }
 
 export function SectionLabel({ eyebrow, title, action }: { eyebrow?: string; title: string; action?: string }) {
@@ -47,7 +49,8 @@ export function RadarMap({ rides }: { rides: Ride[] }) {
   const colors = useColors();
   const pings = rides.slice(0, 5);
   return (
-    <View style={[styles.radarMap, { backgroundColor: colors.card, borderColor: colors.line }]}>
+    <View style={[styles.radarMap, { backgroundColor: colors.card, borderColor: cyberpunkColors.cyan, shadowColor: cyberpunkColors.cyan }]}>
+      <ScanlineOverlay />
       <View style={[styles.radarSweep, { borderColor: colors.primary }]} />
       <View style={[styles.radarRing, styles.radarRingLarge, { borderColor: colors.line }]} />
       <View style={[styles.radarRing, styles.radarRingMedium, { borderColor: colors.line }]} />
@@ -79,7 +82,7 @@ export function RideCard({ ride, onAccept, onDecline }: { ride: Ride; onAccept: 
   const colors = useColors();
   const sourceColor = platformColor(ride.platform, colors);
   return (
-    <View style={[styles.rideCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View style={[styles.rideCard, { backgroundColor: colors.card, borderColor: cyberpunkColors.hotPink, shadowColor: cyberpunkColors.hotPink }]}>
       <View style={styles.rideTop}>
         <View style={styles.sourceRow}>
           <View style={[styles.sourceMark, { backgroundColor: sourceColor }]}>
@@ -179,10 +182,10 @@ export function ProBadge() {
 
 const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 12 },
-  eyebrow: { fontSize: 10, fontWeight: '700', letterSpacing: 1.8, marginBottom: 5 },
-  sectionTitle: { fontSize: 21, fontWeight: '700', letterSpacing: -0.4 },
-  sectionAction: { fontSize: 12, fontWeight: '600', paddingBottom: 2 },
-  radarMap: { height: 286, borderRadius: 24, borderWidth: 1, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
+  eyebrow: { fontFamily: 'monospace', fontSize: 10, fontWeight: '700', letterSpacing: 1.8, marginBottom: 5 },
+  sectionTitle: { fontFamily: 'monospace', fontSize: 21, fontWeight: '700', letterSpacing: -0.4 },
+  sectionAction: { fontFamily: 'monospace', fontSize: 12, fontWeight: '600', paddingBottom: 2 },
+  radarMap: { height: 286, borderRadius: 24, borderWidth: 1, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', shadowOpacity: 0.5, shadowRadius: 16, elevation: 8 },
   radarSweep: { position: 'absolute', width: 260, height: 260, borderWidth: 1, borderRadius: 130, borderRightColor: 'transparent', borderBottomColor: 'transparent', transform: [{ rotate: '28deg' }], opacity: 0.45 },
   radarRing: { position: 'absolute', borderWidth: 1, borderRadius: 999 },
   radarRingLarge: { width: 250, height: 250 },
@@ -196,44 +199,44 @@ const styles = StyleSheet.create({
   driverMarker: { width: 30, height: 30, borderRadius: 16, alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.5, shadowRadius: 12, elevation: 8 },
   mapLabel: { position: 'absolute', top: 16, left: 16, flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 20 },
   liveDot: { width: 6, height: 6, borderRadius: 4 },
-  mapLabelText: { fontSize: 10, fontWeight: '700', letterSpacing: 1.2 },
-  mapScale: { position: 'absolute', bottom: 15, right: 16, fontSize: 9, letterSpacing: 1.2, fontWeight: '700' },
-  rideCard: { borderWidth: 1, borderRadius: 20, padding: 16, marginBottom: 12 },
+  mapLabelText: { fontFamily: 'monospace', fontSize: 10, fontWeight: '700', letterSpacing: 1.2 },
+  mapScale: { position: 'absolute', bottom: 15, right: 16, fontFamily: 'monospace', fontSize: 9, letterSpacing: 1.2, fontWeight: '700' },
+  rideCard: { borderWidth: 1, borderRadius: 20, padding: 16, marginBottom: 12, shadowOpacity: 0.45, shadowRadius: 12, elevation: 6 },
   rideTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   sourceRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   sourceMark: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  platformName: { fontSize: 14, fontWeight: '700' },
-  rideMeta: { fontSize: 11, marginTop: 3 },
-  fare: { fontSize: 18, fontWeight: '800', letterSpacing: -0.4 },
+  platformName: { fontFamily: 'monospace', fontSize: 14, fontWeight: '700' },
+  rideMeta: { fontFamily: 'monospace', fontSize: 11, marginTop: 3 },
+  fare: { fontFamily: 'monospace', fontSize: 18, fontWeight: '800', letterSpacing: -0.4 },
   routeRow: { flexDirection: 'row', marginTop: 18, minHeight: 74 },
   routeRail: { width: 18, alignItems: 'center', paddingTop: 4 },
   routeDot: { width: 7, height: 7, borderRadius: 5 },
   routeLine: { width: 1, height: 28, marginVertical: 3 },
   routeText: { flex: 1 },
-  routeLabel: { fontSize: 13, fontWeight: '600' },
-  routeSub: { fontSize: 11, marginTop: 3 },
+  routeLabel: { fontFamily: 'monospace', fontSize: 13, fontWeight: '600' },
+  routeSub: { fontFamily: 'monospace', fontSize: 11, marginTop: 3 },
   rating: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingTop: 1 },
-  ratingText: { fontSize: 11, fontWeight: '700' },
+  ratingText: { fontFamily: 'monospace', fontSize: 11, fontWeight: '700' },
   actionRow: { flexDirection: 'row', gap: 9, marginTop: 15 },
   declineButton: { height: 43, flex: 0.38, borderRadius: 12, borderWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   acceptButton: { height: 43, flex: 0.62, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
-  declineText: { fontSize: 12, fontWeight: '700' },
-  acceptText: { fontSize: 12, fontWeight: '800' },
+  declineText: { fontFamily: 'monospace', fontSize: 12, fontWeight: '700' },
+  acceptText: { fontFamily: 'monospace', fontSize: 12, fontWeight: '800' },
   statusStrip: { borderRadius: 10, paddingVertical: 9, paddingHorizontal: 11, marginTop: 10 },
-  statusText: { fontSize: 10, fontWeight: '800', letterSpacing: 1.1 },
+  statusText: { fontFamily: 'monospace', fontSize: 10, fontWeight: '800', letterSpacing: 1.1 },
   filterSummary: { flexDirection: 'row', alignItems: 'center', padding: 13, borderRadius: 16, borderWidth: 1, marginBottom: 18 },
   filterIcon: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   filterCopy: { flex: 1, marginLeft: 11 },
-  filterSummaryTitle: { fontSize: 12, fontWeight: '700' },
-  filterSummaryText: { fontSize: 11, marginTop: 3 },
+  filterSummaryTitle: { fontFamily: 'monospace', fontSize: 12, fontWeight: '700' },
+  filterSummaryText: { fontFamily: 'monospace', fontSize: 11, marginTop: 3 },
   filterCount: { width: 27, height: 27, borderWidth: 1, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  filterCountText: { fontSize: 12, fontWeight: '800' },
+  filterCountText: { fontFamily: 'monospace', fontSize: 12, fontWeight: '800' },
   sliderWrap: { marginTop: 14 },
   sliderTrack: { height: 5, borderRadius: 4, position: 'relative', justifyContent: 'center' },
   sliderFill: { height: 5, borderRadius: 4 },
   sliderThumb: { position: 'absolute', width: 17, height: 17, borderRadius: 10, marginLeft: -8, shadowOpacity: 0.5, shadowRadius: 8, elevation: 5 },
   sliderLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 9 },
-  sliderLabel: { fontSize: 10 },
+  sliderLabel: { fontFamily: 'monospace', fontSize: 10 },
   proBadge: { borderRadius: 7, paddingHorizontal: 7, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  proBadgeText: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
+  proBadgeText: { fontFamily: 'monospace', fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
 });
