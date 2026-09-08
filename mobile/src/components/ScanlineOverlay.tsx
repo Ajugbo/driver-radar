@@ -20,6 +20,6 @@ export function ScanlineOverlay() {
 }
 
 const styles = StyleSheet.create({
-  grid: { ...StyleSheet.absoluteFillObject, opacity: 0.12, borderWidth: 1, borderColor: '#00F3FF' },
+  grid: { ...StyleSheet.absoluteFill, opacity: 0.12, borderWidth: 1, borderColor: '#00F3FF' },
   scanline: { position: 'absolute', left: 0, right: 0, top: 0, height: 1, opacity: 0.3, backgroundColor: '#00F3FF' },
 });
