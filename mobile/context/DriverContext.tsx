@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { api, setAccessToken } from '@/lib/api';
+import { rideAggregator } from '@/src/core/ride-aggregator';
 
 export type PlatformName = 'Uber' | 'Bolt' | 'inDrive';
 export type RideStatus = 'pending' | 'accepted' | 'declined' | 'expired';
@@ -101,6 +102,24 @@ export function DriverProvider({ children }: { children: ReactNode }) {
     }
   }, [remoteRides.data, token]);
   useEffect(() => {
+    if (!token || !isListenerLive) {
+      rideAggregator.stop();
+      return;
+    }
+    let cancelled = false;
+    void rideAggregator.start((ride) => {
+      if (cancelled) return;
+      setRides((current) => current.map((existing) => existing.id === ride.id ? ride : existing));
+      setLastSync('Just now');
+    }, (platform, error) => {
+      if (!cancelled) console.warn(`[Driver Radar] ${platform} feed unavailable`, error);
+    });
+    return () => {
+      cancelled = true;
+      rideAggregator.stop();
+    };
+  }, [isListenerLive, token]);
+  useEffect(() => {
     setAccessToken(token);
     if (isHydrated) AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ rides, filters, platforms, token, driver })).catch(() => undefined);
   }, [driver, filters, isHydrated, platforms, rides, token]);
@@ -112,7 +131,14 @@ export function DriverProvider({ children }: { children: ReactNode }) {
   const updateFilters = (next: Partial<Filters>) => { setFilters((current) => ({ ...current, ...next })); setLastSync('Unsaved changes'); };
   const markRide = (id: string, status: 'accepted' | 'declined') => {
     setRides((current) => current.map((ride) => ride.id === id ? { ...ride, status, timestamp: 'Today, now' } : ride));
-    if (token) api.decision(id, status).catch(() => undefined);
+    const ride = rides.find((currentRide) => currentRide.id === id);
+    if (token && status === 'accepted' && ride?.platform === 'inDrive') {
+      void rideAggregator.acceptRide(ride).then((accepted) => {
+        if (!accepted) api.decision(id, status).catch(() => undefined);
+      });
+    } else if (token) {
+      api.decision(id, status).catch(() => undefined);
+    }
     Haptics.notificationAsync(status === 'accepted' ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
   };
   const authenticate = async (mode: 'login' | 'register', email: string, password: string) => {

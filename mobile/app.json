@@ -18,18 +18,35 @@
       "adaptiveIcon": {
         "backgroundColor": "#000000"
       },
-      "allowBackup": false
+      "allowBackup": false,
+      "package": "com.ajugbo.driverradar"
     },
     "ios": {
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Driver Radar uses your location to monitor nearby rides while you are driving.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Driver Radar uses your location in the background to monitor nearby rides while you are driving.",
         "NSLocationAlwaysUsageDescription": "Driver Radar uses your location in the background to monitor nearby rides while you are driving.",
-        "UIBackgroundModes": ["location"]
+        "UIBackgroundModes": [
+          "location"
+        ]
       }
     },
-    "plugins": ["expo-router"],
-    "experiments": { "typedRoutes": true },
-    "web": { "bundler": "metro" }
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "router": {},
+      "enabledPlatforms": ["inDrive"],
+      "batteryOptimization": false,
+      "eas": {
+        "projectId": "3fb19b61-ed1d-43a6-b308-ffd7c2c3cf60"
+      }
+    }
   }
 }
