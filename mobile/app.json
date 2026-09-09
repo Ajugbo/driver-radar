@@ -5,6 +5,29 @@
     "scheme": "driverradar",
     "version": "1.0.0",
     "orientation": "portrait",
+    "android": {
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "POST_NOTIFICATIONS",
+        "WAKE_LOCK"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#000000"
+      },
+      "allowBackup": false
+    },
+    "ios": {
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Driver Radar uses your location to monitor nearby rides while you are driving.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Driver Radar uses your location in the background to monitor nearby rides while you are driving.",
+        "NSLocationAlwaysUsageDescription": "Driver Radar uses your location in the background to monitor nearby rides while you are driving.",
+        "UIBackgroundModes": ["location"]
+      }
+    },
     "plugins": ["expo-router"],
     "experiments": { "typedRoutes": true },
     "web": { "bundler": "metro" }
