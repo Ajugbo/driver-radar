@@ -7,6 +7,8 @@ import {
   serial,
   text,
   timestamp,
+  uniqueIndex,
+  varchar,
 } from 'drizzle-orm/pg-core';
 
 export const drivers = pgTable('drivers', {
@@ -14,6 +16,9 @@ export const drivers = pgTable('drivers', {
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   subscriptionTier: text('subscription_tier').notNull().default('free'),
+  trialStartDate: timestamp('trial_start_date', { withTimezone: true }),
+  subscriptionStartDate: timestamp('subscription_start_date', { withTimezone: true }),
+  currency: varchar('currency', { length: 3 }).notNull().default('NGN'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -55,8 +60,23 @@ export const subscriptions = pgTable('subscriptions', {
   expiresAt: timestamp('expires_at', { withTimezone: true }),
 });
 
+export const transactions = pgTable('transactions', {
+  id: serial('id').primaryKey(),
+  driverId: integer('driver_id').notNull().references(() => drivers.id, { onDelete: 'cascade' }),
+  provider: varchar('provider', { length: 20 }).notNull(),
+  providerTransactionId: text('provider_transaction_id').notNull(),
+  amountMinor: integer('amount_minor').notNull(),
+  currency: varchar('currency', { length: 3 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull(),
+  metadata: jsonb('metadata').$type<Record<string, string | number | boolean | null>>().notNull().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  providerTransactionUnique: uniqueIndex('transactions_provider_transaction_unique').on(table.provider, table.providerTransactionId),
+}));
+
 export type Driver = typeof drivers.$inferSelect;
 export type DriverPreferences = typeof driverPreferences.$inferSelect;
 export type PlatformConnection = typeof platformConnections.$inferSelect;
 export type RideRequest = typeof rideRequests.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;
+export type Transaction = typeof transactions.$inferSelect;

@@ -19,6 +19,11 @@ export const subscriptionSchema = z.object({
   tier: z.enum(['free', 'pro']),
   revenuecatCustomerId: z.string().max(200).optional(),
 });
+export const paymentCheckoutSchema = z.object({
+  countryCode: z.string().trim().length(2).transform((value) => value.toUpperCase()),
+  currency: z.string().trim().length(3).transform((value) => value.toUpperCase()).optional(),
+  email: z.string().email().max(254).optional(),
+});
 
 export type PlatformName = z.infer<typeof platformSchema>;
 export type RideStatus = z.infer<typeof rideStatusSchema>;
@@ -27,6 +32,7 @@ export type PreferencesInput = z.infer<typeof preferencesSchema>;
 export type RideDecisionInput = z.infer<typeof rideDecisionSchema>;
 export type PlatformConnectionInput = z.infer<typeof platformConnectionSchema>;
 export type SubscriptionInput = z.infer<typeof subscriptionSchema>;
+export type PaymentCheckoutInput = z.infer<typeof paymentCheckoutSchema>;
 
 export interface ApiRide {
   id: string;

@@ -165,6 +165,62 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/PlatformConnection"
+  /subscription:
+    get:
+      operationId: getSubscriptionAccess
+      tags: [subscription]
+      summary: Get server-calculated subscription access
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current trial or paid access
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+  /payment/checkout:
+    post:
+      operationId: createPaymentCheckout
+      tags: [payments]
+      summary: Create a seven-day Pro checkout session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentCheckoutInput"
+      responses:
+        "200":
+          description: Provider checkout URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentCheckoutResponse"
+        "429":
+          description: Rate limit exceeded
+  /webhooks/stripe:
+    post:
+      operationId: stripeWebhook
+      tags: [payments]
+      summary: Receive verified Stripe events
+      responses:
+        "200":
+          description: Event accepted
+        "400":
+          description: Invalid signature or event
+  /webhooks/paystack:
+    post:
+      operationId: paystackWebhook
+      tags: [payments]
+      summary: Receive verified Paystack events
+      responses:
+        "200":
+          description: Event accepted
+        "400":
+          description: Invalid signature or event
 components:
   securitySchemes:
     bearerAuth:
@@ -281,4 +337,60 @@ components:
         isActive:
           type: boolean
       required: [id, platformName, isActive]
+    SubscriptionAccess:
+      type: object
+      properties:
+        driverId:
+          type: integer
+        allowed:
+          type: boolean
+        tier:
+          type: string
+          enum: [free, trial, pro]
+        expiresAt:
+          type: string
+          format: date-time
+        daysRemaining:
+          type: integer
+      required: [driverId, allowed, tier, expiresAt, daysRemaining]
+    SubscriptionResponse:
+      type: object
+      properties:
+        subscription:
+          $ref: "#/components/schemas/SubscriptionAccess"
+      required: [subscription]
+    PaymentCheckoutInput:
+      type: object
+      properties:
+        countryCode:
+          type: string
+          minLength: 2
+          maxLength: 2
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+      required: [countryCode]
+    PaymentCheckoutResponse:
+      type: object
+      properties:
+        checkout:
+          type: object
+          properties:
+            provider:
+              type: string
+              enum: [stripe, paystack]
+            checkoutUrl:
+              type: string
+              format: uri
+            currency:
+              type: string
+          required: [provider, checkoutUrl, currency]
+        amount:
+          type: integer
+          example: 4999
+        periodDays:
+          type: integer
+          example: 7
+      required: [checkout, amount, periodDays]
 

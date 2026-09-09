@@ -1,0 +1,9 @@
+# Copy these names into Vercel Project Settings > Environment Variables.
+# Replace every <PLACEHOLDER> value in the Vercel dashboard; do not commit real secrets.
+DATABASE_URL=<NEON_CONNECTION_STRING>
+JWT_SECRET=<GENERATE_WITH_openssl_rand_hex_32>
+STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY_FROM_STRIPE_DASHBOARD>
+STRIPE_WEBHOOK_SECRET=<STRIPE_WEBHOOK_SIGNING_SECRET>
+PAYSTACK_SECRET_KEY=<PAYSTACK_SECRET_KEY_FROM_PAYSTACK_DASHBOARD>
+PAYMENT_CALLBACK_URL=https://driver-radar.vercel.app
+WEBHOOK_ALLOWED_ORIGIN=https://driver-radar.vercel.app

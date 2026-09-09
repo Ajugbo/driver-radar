@@ -6,6 +6,7 @@ import { authInputSchema, type DriverProfile } from '../../packages/types';
 export interface ApiRequest {
   method?: string;
   body?: unknown;
+  rawBody?: string;
   headers: IncomingHttpHeaders & Record<string, string | string[] | undefined>;
   query?: Record<string, string | string[] | undefined>;
 }
