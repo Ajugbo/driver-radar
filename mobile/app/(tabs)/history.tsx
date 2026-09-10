@@ -9,7 +9,7 @@ import { useColors } from '@/hooks/useColors';
 export default function HistoryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { rides, acceptRide, declineRide, isPro } = useDriver();
+  const { rides, acceptRide, declineRide, isPro, currency } = useDriver();
   const completed = rides.filter((ride) => ride.status !== 'pending');
   const accepted = rides.filter((ride) => ride.status === 'accepted');
   const earnings = accepted.reduce((total, ride) => total + ride.fare, 0);
@@ -35,7 +35,7 @@ export default function HistoryScreen() {
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>EARNINGS</Text>
-            <Text style={[styles.statValue, { color: colors.primary }]}>{formatNgn(earnings || 42800)}</Text>
+            <Text style={[styles.statValue, { color: colors.primary }]}>{formatNgn(earnings || 42800, currency)}</Text>
             <Text style={[styles.statTrend, { color: colors.mutedForeground }]}>from radar picks</Text>
           </View>
         </View>
@@ -48,7 +48,7 @@ export default function HistoryScreen() {
         {completed.length ? completed.map((ride) => <RideCard key={ride.id} ride={ride} onAccept={() => acceptRide(ride.id)} onDecline={() => declineRide(ride.id)} />) : (
           <View style={[styles.empty, { backgroundColor: colors.card, borderColor: colors.border }]}><Feather name="activity" size={23} color={colors.primary} /><Text style={[styles.emptyTitle, { color: colors.foreground }]}>No completed rides yet</Text><Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Accept a request from the radar to start your activity log.</Text></View>
         )}
-        {!isPro ? <Text style={[styles.disclaimer, { color: colors.mutedForeground }]}>History shown in demo mode. Sign in and connect RevenueCat to persist Pro analytics across devices.</Text> : null}
+        {!isPro ? <Text style={[styles.disclaimer, { color: colors.mutedForeground }]}>Upgrade to Pro to persist deeper analytics across devices.</Text> : null}
       </ScrollView>
     </View>
   );

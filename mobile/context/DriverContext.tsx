@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { api, setAccessToken } from '@/lib/api';
+import { detectCurrency, formatCurrency, type Currency } from '@/lib/currency-detector';
 import { rideAggregator } from '@/src/core/ride-aggregator';
 
 export type PlatformName = 'Uber' | 'Bolt' | 'inDrive';
@@ -37,6 +38,7 @@ interface DriverContextValue {
   platforms: Record<PlatformName, boolean>;
   driver: DriverIdentity;
   token: string | null;
+  currency: Currency;
   isHydrated: boolean;
   isListenerLive: boolean;
   isFeedLoading: boolean;
@@ -50,29 +52,23 @@ interface DriverContextValue {
   declineRide: (id: string) => void;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
-  continueAsDemo: () => void;
   signOut: () => Promise<void>;
 }
 
 const STORAGE_KEY = '@driver-radar/state';
-const seedRides: Ride[] = [
-  { id: 'ride-001', platform: 'Bolt', fare: 4200, distance: 1.2, pickup: 'Maitama', dropoff: 'Wuse 2', rating: 4.86, eta: '2 min', status: 'pending', timestamp: 'Now' },
-  { id: 'ride-002', platform: 'Uber', fare: 6800, distance: 2.4, pickup: 'Gwarinpa', dropoff: 'Central Area', rating: 4.92, eta: '4 min', status: 'pending', timestamp: '1 min' },
-  { id: 'ride-003', platform: 'inDrive', fare: 3100, distance: 0.8, pickup: 'Jabi', dropoff: 'Airport Road', rating: 4.7, eta: '1 min', status: 'pending', timestamp: '2 min' },
-  { id: 'ride-004', platform: 'Bolt', fare: 7600, distance: 3.8, pickup: 'Asokoro', dropoff: 'Katampe', rating: 4.78, eta: '6 min', status: 'accepted', timestamp: 'Today, 08:42' },
-];
 const defaultFilters: Filters = { minFare: 2500, maxRadius: 3, minRating: null, blacklistedZones: ['Airport Road'] };
 const defaultPlatforms: Record<PlatformName, boolean> = { Uber: true, Bolt: true, inDrive: true };
-const demoDriver: DriverIdentity = { id: 0, email: 'demo@driverradar.ng', subscriptionTier: 'free' };
+const emptyDriver: DriverIdentity = { id: 0, email: '', subscriptionTier: 'free' };
 
 const DriverContext = createContext<DriverContextValue | null>(null);
 
 export function DriverProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const [rides, setRides] = useState(seedRides);
+  const [rides, setRides] = useState<Ride[]>([]);
+  const [currency, setCurrency] = useState<Currency>('NGN');
   const [filters, setFilters] = useState(defaultFilters);
   const [platforms, setPlatforms] = useState(defaultPlatforms);
-  const [driver, setDriver] = useState(demoDriver);
+  const [driver, setDriver] = useState(emptyDriver);
   const [token, setToken] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isListenerLive, setIsListenerLive] = useState(true);
@@ -86,11 +82,12 @@ export function DriverProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
+    void detectCurrency().then(setCurrency);
     AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
       if (stored) {
         const state = JSON.parse(stored) as Partial<{ rides: Ride[]; filters: Filters; platforms: Record<PlatformName, boolean>; token: string | null; driver: DriverIdentity }>;
-        setRides(state.rides ?? seedRides); setFilters(state.filters ?? defaultFilters); setPlatforms(state.platforms ?? defaultPlatforms);
-        setToken(state.token ?? null); setDriver(state.driver ?? demoDriver); setAccessToken(state.token ?? null);
+        setRides(state.token ? (state.rides ?? []) : []); setFilters(state.filters ?? defaultFilters); setPlatforms(state.platforms ?? defaultPlatforms);
+        setToken(state.token ?? null); setDriver(state.token ? (state.driver ?? emptyDriver) : emptyDriver); setAccessToken(state.token ?? null);
       }
       setIsHydrated(true);
     }).catch(() => setIsHydrated(true));
@@ -142,18 +139,18 @@ export function DriverProvider({ children }: { children: ReactNode }) {
     Haptics.notificationAsync(status === 'accepted' ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
   };
   const authenticate = async (mode: 'login' | 'register', email: string, password: string) => {
-    const response = mode === 'login' ? await api.login(email, password) : await api.register(email, password);
+    const response = mode === 'login' ? await api.login(email, password, currency) : await api.register(email, password, currency);
     setToken(response.token); setAccessToken(response.token); setDriver(response.driver); await queryClient.invalidateQueries({ queryKey: ['rides'] });
   };
   const value = useMemo<DriverContextValue>(() => ({
-    rides, visibleRides, filters, platforms, driver, token, isHydrated, isListenerLive, isFeedLoading: Boolean(token) && remoteRides.isLoading, listenerError: remoteRides.error instanceof Error ? remoteRides.error.message : remoteRides.error ? 'Live ride feed unavailable.' : null, isPro: driver.subscriptionTier === 'pro', lastSync,
+    rides, visibleRides, filters, platforms, driver, token, currency, isHydrated, isListenerLive, isFeedLoading: Boolean(token) && remoteRides.isLoading, listenerError: remoteRides.error instanceof Error ? remoteRides.error.message : remoteRides.error ? 'Live ride feed unavailable.' : null, isPro: driver.subscriptionTier === 'pro', lastSync,
     updateFilters: (next) => { updateFilters(next); if (token) api.preferences(next).catch(() => undefined); },
     togglePlatform: (platform) => setPlatforms((current) => ({ ...current, [platform]: !current[platform] })),
     toggleListener: () => { setIsListenerLive((current) => !current); Haptics.selectionAsync().catch(() => undefined); },
     acceptRide: (id) => markRide(id, 'accepted'), declineRide: (id) => markRide(id, 'declined'),
     login: (email, password) => authenticate('login', email, password), register: (email, password) => authenticate('register', email, password),
-    continueAsDemo: () => { setToken(null); setAccessToken(null); setDriver(demoDriver); }, signOut: async () => { setToken(null); setAccessToken(null); setDriver(demoDriver); await AsyncStorage.removeItem(STORAGE_KEY); },
-  }), [driver, filters, isHydrated, isListenerLive, lastSync, platforms, remoteRides.error, remoteRides.isLoading, rides, token, visibleRides]);
+    signOut: async () => { setToken(null); setAccessToken(null); setDriver(emptyDriver); setRides([]); await AsyncStorage.removeItem(STORAGE_KEY); },
+  }), [currency, driver, filters, isHydrated, isListenerLive, lastSync, platforms, remoteRides.error, remoteRides.isLoading, rides, token, visibleRides]);
   return <DriverContext.Provider value={value}>{children}</DriverContext.Provider>;
 }
 
@@ -163,6 +160,6 @@ export function useDriver() {
   return context;
 }
 
-export function formatNgn(amount: number) {
-  return `₦${amount.toLocaleString('en-NG')}`;
+export function formatNgn(amount: number, currency: Currency = 'NGN') {
+  return formatCurrency(amount, currency);
 }

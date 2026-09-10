@@ -3,13 +3,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import React, { useState } from 'react';
 import { ProBadge, SectionLabel, SliderRail } from '@/components/RadarUI';
-import { useDriver } from '@/context/DriverContext';
+import { useDriver, formatNgn } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
 export default function FiltersScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { filters, updateFilters, isPro } = useDriver();
+  const { filters, updateFilters, isPro, currency } = useDriver();
   const [zone, setZone] = useState('');
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
@@ -39,7 +39,7 @@ export default function FiltersScreen() {
               <View style={[styles.iconBox, { backgroundColor: colors.accent }]}><Ionicons name="cash-outline" size={16} color={colors.primary} /></View>
               <View><Text style={[styles.label, { color: colors.foreground }]}>Minimum fare</Text><Text style={[styles.helper, { color: colors.mutedForeground }]}>Ignore low-value requests</Text></View>
             </View>
-            <Text style={[styles.value, { color: colors.primary }]}>₦{filters.minFare.toLocaleString('en-NG')}</Text>
+            <Text style={[styles.value, { color: colors.primary }]}>{formatNgn(filters.minFare, currency)}</Text>
           </View>
           <SliderRail value={filters.minFare} min={1000} max={7000} step={500} color={colors.primary} onChange={(value) => updateFilters({ minFare: value })} />
         </View>

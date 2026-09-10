@@ -1,8 +1,12 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
+import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
+import { countryCodeForCurrency, formatCurrency } from '@/lib/currency-detector';
+import { useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
 const benefits = ['Unlimited platform listeners', 'Priority ping animations', 'Advanced rating and zone filters', 'Weekly earnings analytics'];
@@ -12,13 +16,41 @@ export default function PaywallScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
+  const { currency, token } = useDriver();
+  const [subscription, setSubscription] = useState<{ tier: 'free' | 'trial' | 'pro'; allowed: boolean; daysRemaining: number } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (token) void api.subscription().then((response) => setSubscription(response.subscription)).catch((requestError) => setError(requestError instanceof Error ? requestError.message : 'Unable to load subscription status.'));
+  }, [token]);
+
+  const subscribe = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      const response = await api.checkout(countryCodeForCurrency(currency), currency);
+      await Linking.openURL(response.checkout.checkoutUrl);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to start checkout.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  const statusCopy = subscription?.tier === 'trial' && subscription.allowed
+    ? `🎁 3-DAY FREE TRIAL ACTIVE • ${subscription.daysRemaining} days remaining`
+    : subscription?.tier === 'pro' && subscription.allowed
+      ? `✅ PRO: ${subscription.daysRemaining} days remaining`
+      : subscription?.tier === 'pro' ? 'Subscription Expired' : 'Start Free Trial';
+  const actionCopy = subscription?.tier === 'pro' && subscription.allowed ? 'Renew subscription' : subscription?.tier === 'trial' && subscription.allowed ? 'View billing' : subscription?.tier === 'pro' ? 'Subscribe again' : 'Start free trial';
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={{ paddingTop: topInset + 16, paddingBottom: bottomInset + 30 }}>
         <Pressable testID="close-paywall" onPress={() => router.back()} style={styles.close}><Feather name="x" size={20} color={colors.mutedForeground} /></Pressable>
-        <View style={styles.hero}><View style={[styles.logo, { backgroundColor: colors.primary }]}><Ionicons name="flash" size={25} color={colors.primaryForeground} /></View><Text style={[styles.kicker, { color: colors.primary }]}>RADAR PRO</Text><Text style={[styles.heading, { color: colors.foreground }]}>Drive with signal.</Text><Text style={[styles.copy, { color: colors.mutedForeground }]}>Cut through the noise with a premium command layer for Nigerian drivers.</Text></View>
-        <View style={[styles.plan, { backgroundColor: colors.card, borderColor: colors.primary }]}><View style={styles.planTop}><View><Text style={[styles.planName, { color: colors.foreground }]}>Pro driver</Text><Text style={[styles.planSub, { color: colors.mutedForeground }]}>Monthly membership</Text></View><View style={[styles.price, { backgroundColor: colors.accent }]}><Text style={[styles.priceValue, { color: colors.primary }]}>₦4,999</Text><Text style={[styles.priceSub, { color: colors.mutedForeground }]}>/ month</Text></View></View>{benefits.map((benefit) => <View key={benefit} style={styles.benefit}><View style={[styles.check, { backgroundColor: colors.primary }]}><Feather name="check" size={11} color={colors.primaryForeground} /></View><Text style={[styles.benefitText, { color: colors.foreground }]}>{benefit}</Text></View>)}<Pressable testID="connect-billing" onPress={() => undefined} style={[styles.cta, { backgroundColor: colors.primary }]}><Text style={[styles.ctaText, { color: colors.primaryForeground }]}>Connect RevenueCat to subscribe</Text><Feather name="arrow-up-right" size={16} color={colors.primaryForeground} /></Pressable></View>
-        <View style={[styles.note, { backgroundColor: colors.muted }]}><Ionicons name="information-circle-outline" size={17} color={colors.warning} /><Text style={[styles.noteText, { color: colors.mutedForeground }]}>Billing setup is waiting for the RevenueCat workspace connection. Prices above are the product brief target; the live paywall will source prices from RevenueCat once connected.</Text></View>
+        <View style={styles.hero}><View style={[styles.logo, { backgroundColor: colors.primary }]}><Ionicons name="flash" size={25} color={colors.primaryForeground} /></View><Text style={[styles.kicker, { color: colors.primary }]}>RADAR PRO</Text><Text style={[styles.heading, { color: colors.foreground }]}>Drive with signal.</Text><Text style={[styles.copy, { color: colors.mutedForeground }]}>Cut through the noise with a premium command layer for connected drivers.</Text></View>
+        <View style={[styles.plan, { backgroundColor: colors.card, borderColor: colors.primary }]}><View style={styles.planTop}><View><Text style={[styles.planName, { color: colors.foreground }]}>Pro driver</Text><Text style={[styles.planSub, { color: colors.mutedForeground }]}>{statusCopy}</Text></View><View style={[styles.price, { backgroundColor: colors.accent }]}><Text style={[styles.priceValue, { color: colors.primary }]}>{formatCurrency(4999, currency)}</Text><Text style={[styles.priceSub, { color: colors.mutedForeground }]}>/ 7 days</Text></View></View>{benefits.map((benefit) => <View key={benefit} style={styles.benefit}><View style={[styles.check, { backgroundColor: colors.primary }]}><Feather name="check" size={11} color={colors.primaryForeground} /></View><Text style={[styles.benefitText, { color: colors.foreground }]}>{benefit}</Text></View>)}<Pressable testID="connect-billing" onPress={subscribe} disabled={busy || !token} style={[styles.cta, { backgroundColor: colors.primary, opacity: busy || !token ? 0.6 : 1 }]}><Text style={[styles.ctaText, { color: colors.primaryForeground }]}>{busy ? 'Opening checkout...' : actionCopy}</Text><Feather name="arrow-up-right" size={16} color={colors.primaryForeground} /></Pressable></View>
+        {error ? <Text style={[styles.error, { color: colors.destructive }]}>{error}</Text> : null}
+        <View style={[styles.note, { backgroundColor: colors.muted }]}><Ionicons name="information-circle-outline" size={17} color={colors.warning} /><Text style={[styles.noteText, { color: colors.mutedForeground }]}>Secure checkout is handled by the regional payment provider for your detected currency.</Text></View>
       </ScrollView>
     </View>
   );
@@ -46,4 +78,5 @@ const styles = StyleSheet.create({
   ctaText: { fontSize: 12, fontWeight: '900' },
   note: { marginHorizontal: 20, borderRadius: 15, padding: 13, flexDirection: 'row', gap: 9, marginTop: 14 },
   noteText: { flex: 1, fontSize: 10, lineHeight: 15 },
+  error: { marginHorizontal: 20, marginTop: 12, fontSize: 11, lineHeight: 16 },
 });

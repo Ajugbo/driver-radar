@@ -9,7 +9,7 @@ import { useColors } from '@/hooks/useColors';
 export default function AuthScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { login, register, continueAsDemo } = useDriver();
+  const { login, register } = useDriver();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,7 +42,7 @@ export default function AuthScreen() {
         <View style={styles.hero}><View style={[styles.logo, { backgroundColor: colors.primary }]}><Ionicons name="navigate" size={25} color={colors.primaryForeground} /></View><Text style={[styles.kicker, { color: colors.primary }]}>DRIVER RADAR</Text><Text style={[styles.heading, { color: colors.foreground }]}>{mode === 'login' ? 'Welcome back.' : 'Join the network.'}</Text><Text style={[styles.copy, { color: colors.mutedForeground }]}>{mode === 'login' ? 'Sign in to sync your filters, connections, and ride history.' : 'Create your driver account and start filtering the noise.'}</Text></View>
         <View style={styles.form}>
           <Text style={[styles.label, { color: colors.mutedForeground }]}>EMAIL</Text>
-          <TextInput testID="email-input" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={colors.mutedForeground} style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]} />
+          <TextInput testID="email-input" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="Enter your email to register or login" placeholderTextColor={colors.mutedForeground} style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]} />
           <Text style={[styles.label, { color: colors.mutedForeground, marginTop: 14 }]}>PASSWORD</Text>
           <TextInput testID="password-input" value={password} onChangeText={setPassword} secureTextEntry placeholder="Minimum 8 characters" placeholderTextColor={colors.mutedForeground} style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]} />
           {error ? <Text style={[styles.error, { color: colors.destructive }]}>{error}</Text> : null}
@@ -50,7 +50,6 @@ export default function AuthScreen() {
           <Pressable testID="google-auth" onPress={() => setError('Google OAuth is scaffolded for the next provider connection. Use email/password for this preview.')} style={[styles.google, { borderColor: colors.border }]}><Ionicons name="logo-google" size={16} color={colors.foreground} /><Text style={[styles.googleText, { color: colors.foreground }]}>Continue with Google</Text></Pressable>
         </View>
         <View style={styles.footer}><Text style={[styles.footerText, { color: colors.mutedForeground }]}>{mode === 'login' ? 'New to Driver Radar?' : 'Already have an account?'}</Text><Pressable onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}><Text style={[styles.footerLink, { color: colors.primary }]}>{mode === 'login' ? 'Create account' : 'Sign in'}</Text></Pressable></View>
-        <Pressable testID="demo-mode" onPress={() => { continueAsDemo(); router.dismiss(); }} style={styles.demo}><Text style={[styles.demoText, { color: colors.mutedForeground }]}>Continue in local demo mode</Text></Pressable>
       </ScrollView>
     </View>
   );
@@ -75,6 +74,4 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', gap: 5, marginTop: 25 },
   footerText: { fontSize: 12 },
   footerLink: { fontSize: 12, fontWeight: '800' },
-  demo: { alignItems: 'center', marginTop: 29, padding: 10 },
-  demoText: { fontSize: 11, fontWeight: '600' },
 });

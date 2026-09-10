@@ -1,7 +1,7 @@
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { DimensionValue, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Filters, formatNgn, PlatformName, Ride } from '@/context/DriverContext';
+import { Filters, formatNgn, PlatformName, Ride, useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 import React, { useEffect } from 'react';
 import { ScanlineOverlay } from '@/src/components/ScanlineOverlay';
@@ -71,7 +71,7 @@ export function RadarMap({ rides }: { rides: Ride[] }) {
       </View>
       <View style={[styles.mapLabel, { backgroundColor: colors.background }]}>
         <View style={[styles.liveDot, { backgroundColor: colors.success }]} />
-        <Text style={[styles.mapLabelText, { color: colors.foreground }]}>ABUJA • LIVE</Text>
+        <Text style={[styles.mapLabelText, { color: colors.foreground }]}>LIVE</Text>
       </View>
       <Text style={[styles.mapScale, { color: colors.mutedForeground }]}>2 KM RADIUS</Text>
     </View>
@@ -80,6 +80,7 @@ export function RadarMap({ rides }: { rides: Ride[] }) {
 
 export function RideCard({ ride, onAccept, onDecline }: { ride: Ride; onAccept: () => void; onDecline: () => void }) {
   const colors = useColors();
+  const { currency } = useDriver();
   const sourceColor = platformColor(ride.platform, colors);
   return (
     <View style={[styles.rideCard, { backgroundColor: colors.card, borderColor: cyberpunkColors.hotPink, shadowColor: cyberpunkColors.hotPink }]}>
@@ -93,7 +94,7 @@ export function RideCard({ ride, onAccept, onDecline }: { ride: Ride; onAccept: 
             <Text style={[styles.rideMeta, { color: colors.mutedForeground }]}>{ride.timestamp}  •  {ride.eta} away</Text>
           </View>
         </View>
-        <Text style={[styles.fare, { color: colors.primary }]}>{formatNgn(ride.fare)}</Text>
+        <Text style={[styles.fare, { color: colors.primary }]}>{formatNgn(ride.fare, currency)}</Text>
       </View>
       <View style={styles.routeRow}>
         <View style={styles.routeRail}>
@@ -135,6 +136,7 @@ export function RideCard({ ride, onAccept, onDecline }: { ride: Ride; onAccept: 
 
 export function FilterSummary({ filters }: { filters: Filters }) {
   const colors = useColors();
+  const { currency } = useDriver();
   return (
     <View style={styles.filterSummary}>
       <View style={[styles.filterIcon, { backgroundColor: colors.accent }]}>
@@ -143,7 +145,7 @@ export function FilterSummary({ filters }: { filters: Filters }) {
       <View style={styles.filterCopy}>
         <Text style={[styles.filterSummaryTitle, { color: colors.foreground }]}>Smart filters active</Text>
         <Text style={[styles.filterSummaryText, { color: colors.mutedForeground }]}>
-          {formatNgn(filters.minFare)} min  •  {filters.maxRadius.toFixed(1)} km max pickup
+          {formatNgn(filters.minFare, currency)} min  •  {filters.maxRadius.toFixed(1)} km max pickup
         </Text>
       </View>
       <View style={[styles.filterCount, { borderColor: colors.primary }]}>

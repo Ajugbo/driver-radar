@@ -11,7 +11,7 @@ import { useColors } from '@/hooks/useColors';
 export default function RadarScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { visibleRides, filters, rides, isListenerLive, isFeedLoading, listenerError, toggleListener, acceptRide, declineRide, lastSync, driver } = useDriver();
+  const { visibleRides, filters, rides, isListenerLive, isFeedLoading, listenerError, toggleListener, acceptRide, declineRide, lastSync, driver, currency } = useDriver();
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
   const pendingCount = visibleRides.length;
@@ -34,7 +34,7 @@ export default function RadarScreen() {
         <View style={[styles.earningsCard, { backgroundColor: colors.primary }]}>
           <View>
             <Text style={[styles.earningsEyebrow, { color: colors.primaryForeground }]}>TODAY'S ACCEPTED FARES</Text>
-            <Text style={[styles.earningsValue, { color: colors.primaryForeground }]}>{formatNgn(todayTotal || 12400)}</Text>
+            <Text style={[styles.earningsValue, { color: colors.primaryForeground }]}>{formatNgn(todayTotal || 12400, currency)}</Text>
           </View>
           <View style={[styles.earningsBadge, { backgroundColor: colors.primaryForeground }]}>
             <Feather name="trending-up" size={13} color={colors.primary} />

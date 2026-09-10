@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
-import { Ride, formatNgn } from '@/context/DriverContext';
+import { Ride, formatNgn, useDriver } from '@/context/DriverContext';
 import cyberpunkColors from './colors';
 
 export function Hologram({ ride }: { ride?: Ride }) {
   const opacity = useSharedValue(0.72);
+  const { currency } = useDriver();
   useEffect(() => {
     opacity.value = withRepeat(withSequence(withTiming(1, { duration: 900 }), withTiming(0.72, { duration: 900 })), -1, true);
   }, [opacity]);
@@ -16,7 +17,7 @@ export function Hologram({ ride }: { ride?: Ride }) {
     <Animated.View style={[styles.card, glowStyle]}>
       <View style={styles.header}>
         <Text style={styles.kicker}>NEW SIGNAL / {ride.platform.toUpperCase()}</Text>
-        <Text style={styles.fare}>{formatNgn(ride.fare)}</Text>
+        <Text style={styles.fare}>{formatNgn(ride.fare, currency)}</Text>
       </View>
       <Text style={styles.route}>{ride.pickup} {'>'} {ride.dropoff}</Text>
       <Text style={styles.meta}>{ride.distance.toFixed(1)} KM AWAY  •  ETA {ride.eta}</Text>
