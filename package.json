@@ -2,7 +2,6 @@
   "name": "driver-radar",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "description": "Driver Radar API and Expo client",
   "scripts": {
     "build": "tsc -p tsconfig.json",
