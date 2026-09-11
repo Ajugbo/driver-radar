@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
-import { drivers } from '../../drizzle/schema.js';
-import { getDb } from '../_lib/db.js';
-import { authInputSchema, cors, handleError, issueToken, jsonBody, methodGuard, memoryUsers, type ApiRequest, type ApiResponse } from '../_lib/http.js';
-import type { DriverProfile } from '../../packages/types.js';
+import { drivers } from '../../drizzle/schema';
+import { getDb } from '../_lib/db';
+import { authInputSchema, cors, handleError, issueToken, jsonBody, methodGuard, memoryUsers, type ApiRequest, type ApiResponse } from '../_lib/http';
+import type { DriverProfile } from '../../packages/types';
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!methodGuard(req, res, ['POST'])) return;
