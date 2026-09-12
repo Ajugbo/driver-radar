@@ -30,12 +30,12 @@ export default function HistoryScreen() {
         <View style={styles.statsGrid}>
           <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>ACCEPTED</Text>
-            <Text style={[styles.statValue, { color: colors.foreground }]}>{accepted.length || 12}</Text>
-            <Text style={[styles.statTrend, { color: colors.success }]}>+24% this week</Text>
+            <Text style={[styles.statValue, { color: colors.foreground }]}>{accepted.length}</Text>
+            <Text style={[styles.statTrend, { color: colors.mutedForeground }]}>accepted rides</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>EARNINGS</Text>
-            <Text style={[styles.statValue, { color: colors.primary }]}>{formatNgn(earnings || 42800, currency)}</Text>
+            <Text style={[styles.statValue, { color: colors.primary }]}>{formatNgn(earnings, currency)}</Text>
             <Text style={[styles.statTrend, { color: colors.mutedForeground }]}>from radar picks</Text>
           </View>
         </View>
@@ -46,7 +46,7 @@ export default function HistoryScreen() {
         </View>
         <View style={styles.historyHeader}><Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent activity</Text><Text style={[styles.sectionCount, { color: colors.mutedForeground }]}>{completed.length} logged</Text></View>
         {completed.length ? completed.map((ride) => <RideCard key={ride.id} ride={ride} onAccept={() => acceptRide(ride.id)} onDecline={() => declineRide(ride.id)} />) : (
-          <View style={[styles.empty, { backgroundColor: colors.card, borderColor: colors.border }]}><Feather name="activity" size={23} color={colors.primary} /><Text style={[styles.emptyTitle, { color: colors.foreground }]}>No completed rides yet</Text><Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Accept a request from the radar to start your activity log.</Text></View>
+          <View style={[styles.empty, { backgroundColor: colors.card, borderColor: colors.border }]}><Feather name="activity" size={23} color={colors.primary} /><Text style={[styles.emptyTitle, { color: colors.foreground }]}>No ride history yet</Text><Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Accept a request from the radar to start your activity log.</Text></View>
         )}
         {!isPro ? <Text style={[styles.disclaimer, { color: colors.mutedForeground }]}>Upgrade to Pro to persist deeper analytics across devices.</Text> : null}
       </ScrollView>

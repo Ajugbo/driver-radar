@@ -22,6 +22,7 @@ export default function TabLayout() {
       <Tabs.Screen name="index" options={{ title: 'Radar', tabBarIcon: ({ color }) => <Feather name="home" size={22} color={color} /> }} />
       <Tabs.Screen name="filters" options={{ title: 'Filters', tabBarIcon: ({ color }) => <Feather name="sliders" size={22} color={color} /> }} />
       <Tabs.Screen name="history" options={{ title: 'History', tabBarIcon: ({ color }) => <Feather name="bar-chart-2" size={22} color={color} /> }} />
+      <Tabs.Screen name="analytics" options={{ title: 'Analytics', tabBarIcon: ({ color }) => <Feather name="pie-chart" size={22} color={color} /> }} />
       <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: ({ color }) => <Feather name="settings" size={22} color={color} /> }} />
     </Tabs>
   );

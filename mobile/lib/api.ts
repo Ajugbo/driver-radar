@@ -31,9 +31,17 @@ export const api = {
   subscription: () => request<{ subscription: SubscriptionStatus }>('/api/subscription'),
   checkout: (countryCode: string, currency: Currency) => request<{ checkout: { checkoutUrl: string; currency: Currency } }>('/api/payment/checkout', { method: 'POST', body: JSON.stringify({ countryCode, currency }) }),
   rides: () => request<{ rides: ApiRide[] }>('/api/rides/feed'),
+  analytics: () => request<AnalyticsResponse>('/api/analytics'),
   decision: (rideId: string, decision: 'accepted' | 'declined') => request('/api/rides/decision', { method: 'POST', body: JSON.stringify({ rideId, decision }) }),
   preferences: (value: unknown) => request('/api/preferences', { method: 'PATCH', body: JSON.stringify(value) }),
 };
+
+export interface AnalyticsResponse {
+  totalEarnings: number;
+  totalTrips: number;
+  averageFare: number;
+  byPlatform: Record<string, { earnings: number; trips: number }>;
+}
 
 export interface SubscriptionStatus {
   allowed: boolean;
