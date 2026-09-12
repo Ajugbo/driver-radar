@@ -26,7 +26,10 @@ export default function SettingsScreen() {
         <View style={styles.headingRow}><View><Text style={[styles.kicker, { color: colors.primary }]}>SYSTEM / 04</Text><Text style={[styles.heading, { color: colors.foreground }]}>Connections</Text></View><ProBadge /></View>
         <View style={[styles.identityCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={[styles.identityMark, { backgroundColor: colors.primary }]}><Text style={[styles.identityLetter, { color: colors.primaryForeground }]}>{driver.email.slice(0, 1).toUpperCase()}</Text></View>
-          <View style={styles.identityCopy}><Text style={[styles.identityName, { color: colors.foreground }]}>{driver.email === 'demo@driverradar.ng' ? 'Demo driver' : driver.email}</Text><Text style={[styles.identitySub, { color: colors.mutedForeground }]}>{isPro ? 'Radar Pro member' : 'Free plan'} • Abuja, NG</Text></View>
+          <View style={styles.identityCopy}>
+            <Text style={[styles.identityName, { color: colors.foreground }]}>{driver.email}</Text>
+            <Text style={[styles.identitySub, { color: colors.mutedForeground }]}>{isPro ? 'Radar Pro member' : 'Free plan'}</Text>
+          </View>
           <Pressable testID="auth-link" onPress={() => router.push('/auth')}><Feather name="edit-3" size={16} color={colors.mutedForeground} /></Pressable>
         </View>
         <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>PLATFORM LISTENERS</Text>
@@ -44,9 +47,9 @@ export default function SettingsScreen() {
           <View style={[styles.menuIcon, { backgroundColor: colors.accent }]}><Ionicons name="flash" size={16} color={colors.primary} /></View><View style={styles.menuCopy}><Text style={[styles.menuTitle, { color: colors.foreground }]}>Radar Pro</Text><Text style={[styles.menuSub, { color: colors.mutedForeground }]}>Unlimited platforms and priority pings</Text></View><Feather name="chevron-right" size={17} color={colors.mutedForeground} />
         </Pressable>
         <Pressable testID="sign-out" onPress={() => signOut()} style={[styles.menuRow, { backgroundColor: colors.card, borderColor: colors.border, marginTop: 9 }]}>
-          <View style={[styles.menuIcon, { backgroundColor: colors.muted }]}><Feather name="log-out" size={16} color={colors.mutedForeground} /></View><View style={styles.menuCopy}><Text style={[styles.menuTitle, { color: colors.foreground }]}>Sign out</Text><Text style={[styles.menuSub, { color: colors.mutedForeground }]}>Return to demo mode on this device</Text></View>
+          <View style={[styles.menuIcon, { backgroundColor: colors.muted }]}><Feather name="log-out" size={16} color={colors.mutedForeground} /></View><View style={styles.menuCopy}><Text style={[styles.menuTitle, { color: colors.foreground }]}>Sign out</Text><Text style={[styles.menuSub, { color: colors.mutedForeground }]}>Sign out of your account</Text></View>
         </Pressable>
-        <Text style={[styles.version, { color: colors.mutedForeground }]}>DRIVER RADAR v1.0.0 • Mock listeners enabled</Text>
+        <Text style={[styles.version, { color: colors.mutedForeground }]}>DRIVER RADAR v1.0.0</Text>
       </ScrollView>
     </View>
   );
