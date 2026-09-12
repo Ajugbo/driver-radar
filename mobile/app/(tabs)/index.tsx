@@ -34,7 +34,8 @@ export default function RadarScreen() {
         <View style={[styles.earningsCard, { backgroundColor: colors.primary }]}>
           <View>
             <Text style={[styles.earningsEyebrow, { color: colors.primaryForeground }]}>TODAY'S ACCEPTED FARES</Text>
-            <Text style={[styles.earningsValue, { color: colors.primaryForeground }]}>{formatNgn(todayTotal || 12400)}</Text>
+            {/* FIX: Removed hardcoded 12400 fallback */}
+            <Text style={[styles.earningsValue, { color: colors.primaryForeground }]}>{formatNgn(todayTotal)}</Text>
           </View>
           <View style={[styles.earningsBadge, { backgroundColor: colors.primaryForeground }]}>
             <Feather name="trending-up" size={13} color={colors.primary} />
