@@ -1,7 +1,7 @@
 import { eq, and } from 'drizzle-orm';
-import { rideRequests } from '../../drizzle/schema';
-import { getDb } from '../_lib/db';
-import { cors, handleError, methodGuard, requireUser, type ApiRequest, type ApiResponse } from '../_lib/http';
+import { rideRequests } from '../drizzle/schema';
+import { getDb } from './_lib/db';
+import { cors, handleError, methodGuard, requireUser, type ApiRequest, type ApiResponse } from './_lib/http';
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!methodGuard(req, res, ['GET'])) return;
@@ -28,7 +28,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     );
 
     const totalTrips = rides.length;
-    const totalEarnings = rides.reduce((sum, ride) => sum + (ride.fareAmountNgn || 0), 0);
+    const totalEarnings = rides.reduce((sum: number, ride: any) => sum + (ride.fareAmountNgn || 0), 0);
 
     // Acceptance rate (defaulting to 95% if they have trips, as we don't track declined rides in this simple schema yet)
     const acceptanceRate = totalTrips > 0 ? 95 : 0;
@@ -45,8 +45,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       const dateStr = d.toISOString().split('T')[0];
 
       const dayTotal = rides
-        .filter(r => r.timestamp && r.timestamp.toISOString().startsWith(dateStr))
-        .reduce((sum, r) => sum + (r.fareAmountNgn || 0), 0);
+        .filter((r: any) => r.timestamp && r.timestamp.toISOString().startsWith(dateStr))
+        .reduce((sum: number, r: any) => sum + (r.fareAmountNgn || 0), 0);
 
       dailyEarnings.push({ day: dayStr, amount: dayTotal });
       if (dayTotal > maxDaily) maxDaily = dayTotal;
