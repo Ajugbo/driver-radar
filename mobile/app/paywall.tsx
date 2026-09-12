@@ -1,24 +1,98 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import React from 'react';
+import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
+import { getRegionalPricing } from '@/lib/currency-detector';
 
 const benefits = ['Unlimited platform listeners', 'Priority ping animations', 'Advanced rating and zone filters', 'Weekly earnings analytics'];
 
 export default function PaywallScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { driver } = useDriver();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const pricing = getRegionalPricing();
+  
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
+
+  const handleSubscribe = async () => {
+    setIsCheckingOut(true);
+    try {
+      const res = await fetch('https://driver-radar.vercel.app/api/payment/checkout', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${driver.token || ''}` 
+        },
+        body: JSON.stringify({ 
+          driverId: driver.id,
+          currency: pricing.currencyCode, 
+          basePriceUSD: pricing.basePriceUSD 
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (data.checkoutUrl) {
+        await Linking.openURL(data.checkoutUrl);
+      } else {
+        Alert.alert('Checkout Error', data.message || 'Could not start checkout process.');
+      }
+    } catch (e) {
+      Alert.alert('Network Error', 'Unable to connect to the payment server.');
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={{ paddingTop: topInset + 16, paddingBottom: bottomInset + 30 }}>
         <Pressable testID="close-paywall" onPress={() => router.back()} style={styles.close}><Feather name="x" size={20} color={colors.mutedForeground} /></Pressable>
-        <View style={styles.hero}><View style={[styles.logo, { backgroundColor: colors.primary }]}><Ionicons name="flash" size={25} color={colors.primaryForeground} /></View><Text style={[styles.kicker, { color: colors.primary }]}>RADAR PRO</Text><Text style={[styles.heading, { color: colors.foreground }]}>Drive with signal.</Text><Text style={[styles.copy, { color: colors.mutedForeground }]}>Cut through the noise with a premium command layer for Nigerian drivers.</Text></View>
-        <View style={[styles.plan, { backgroundColor: colors.card, borderColor: colors.primary }]}><View style={styles.planTop}><View><Text style={[styles.planName, { color: colors.foreground }]}>Pro driver</Text><Text style={[styles.planSub, { color: colors.mutedForeground }]}>Monthly membership</Text></View><View style={[styles.price, { backgroundColor: colors.accent }]}><Text style={[styles.priceValue, { color: colors.primary }]}>₦4,999</Text><Text style={[styles.priceSub, { color: colors.mutedForeground }]}>/ month</Text></View></View>{benefits.map((benefit) => <View key={benefit} style={styles.benefit}><View style={[styles.check, { backgroundColor: colors.primary }]}><Feather name="check" size={11} color={colors.primaryForeground} /></View><Text style={[styles.benefitText, { color: colors.foreground }]}>{benefit}</Text></View>)}<Pressable testID="connect-billing" onPress={() => undefined} style={[styles.cta, { backgroundColor: colors.primary }]}><Text style={[styles.ctaText, { color: colors.primaryForeground }]}>Connect RevenueCat to subscribe</Text><Feather name="arrow-up-right" size={16} color={colors.primaryForeground} /></Pressable></View>
-        <View style={[styles.note, { backgroundColor: colors.muted }]}><Ionicons name="information-circle-outline" size={17} color={colors.warning} /><Text style={[styles.noteText, { color: colors.mutedForeground }]}>Billing setup is waiting for the RevenueCat workspace connection. Prices above are the product brief target; the live paywall will source prices from RevenueCat once connected.</Text></View>
+        <View style={styles.hero}>
+          <View style={[styles.logo, { backgroundColor: colors.primary }]}><Ionicons name="flash" size={25} color={colors.primaryForeground} /></View>
+          <Text style={[styles.kicker, { color: colors.primary }]}>RADAR PRO</Text>
+          <Text style={[styles.heading, { color: colors.foreground }]}>Drive with signal.</Text>
+          <Text style={[styles.copy, { color: colors.mutedForeground }]}>Cut through the noise with a premium command layer for global drivers.</Text>
+        </View>
+        
+        <View style={[styles.plan, { backgroundColor: colors.card, borderColor: colors.primary }]}>
+          <View style={styles.planTop}>
+            <View>
+              <Text style={[styles.planName, { color: colors.foreground }]}>Pro driver</Text>
+              <Text style={[styles.planSub, { color: colors.mutedForeground }]}>Monthly membership</Text>
+            </View>
+            <View style={[styles.price, { backgroundColor: colors.accent }]}>
+              <Text style={[styles.priceValue, { color: colors.primary }]}>{pricing.displayPrice}</Text>
+              <Text style={[styles.priceSub, { color: colors.mutedForeground }]}>/ month</Text>
+            </View>
+          </View>
+          
+          {benefits.map((benefit) => (
+            <View key={benefit} style={styles.benefit}>
+              <View style={[styles.check, { backgroundColor: colors.primary }]}><Feather name="check" size={11} color={colors.primaryForeground} /></View>
+              <Text style={[styles.benefitText, { color: colors.foreground }]}>{benefit}</Text>
+            </View>
+          ))}
+          
+          <Pressable 
+            testID="subscribe-button" 
+            onPress={handleSubscribe} 
+            disabled={isCheckingOut}
+            style={({ pressed }) => [styles.cta, { backgroundColor: colors.primary, opacity: isCheckingOut || pressed ? 0.7 : 1 }]}
+          >
+            <Text style={[styles.ctaText, { color: colors.primaryForeground }]}>
+              {isCheckingOut ? 'Processing...' : 'Subscribe Now'}
+            </Text>
+            <Feather name="arrow-up-right" size={16} color={colors.primaryForeground} />
+          </Pressable>
+        </View>
+        
+        {/* Removed the RevenueCat warning note */}
       </ScrollView>
     </View>
   );
@@ -44,6 +118,4 @@ const styles = StyleSheet.create({
   benefitText: { fontSize: 12, fontWeight: '600' },
   cta: { height: 49, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 7, marginTop: 10 },
   ctaText: { fontSize: 12, fontWeight: '900' },
-  note: { marginHorizontal: 20, borderRadius: 15, padding: 13, flexDirection: 'row', gap: 9, marginTop: 14 },
-  noteText: { flex: 1, fontSize: 10, lineHeight: 15 },
 });
