@@ -6,6 +6,7 @@ import React from 'react';
 import { ProBadge } from '@/components/RadarUI';
 import { PlatformName, useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
+import { Feather } from '@expo/vector-icons';
 
 const platformCopy: Array<{ name: PlatformName; icon: keyof typeof Ionicons.glyphMap; description: string }> = [
   { name: 'Uber', icon: 'car-outline', description: 'Ride requests and trip status' },
@@ -47,7 +48,19 @@ export default function SettingsScreen() {
           <View style={[styles.menuIcon, { backgroundColor: colors.muted }]}><Feather name="log-out" size={16} color={colors.mutedForeground} /></View><View style={styles.menuCopy}><Text style={[styles.menuTitle, { color: colors.foreground }]}>Sign out</Text><Text style={[styles.menuSub, { color: colors.mutedForeground }]}>Clear this device's session</Text></View>
         </Pressable>
         <Text style={[styles.version, { color: colors.mutedForeground }]}>DRIVER RADAR v1.0.0</Text>
-      </ScrollView>
+      
+          <Pressable 
+            onPress={() => router.push('/add-app')}
+            style={[styles.settingItem, { borderColor: colors.border, backgroundColor: colors.card }]}
+          >
+            <View style={styles.settingLeft}>
+              <Feather name="plus-circle" size={20} color={colors.primary} />
+              <Text style={[styles.settingText, { color: colors.foreground }]}>Add New App (Discovery Mode)</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+          </Pressable>
+
+        </ScrollView>
     </View>
   );
 }
