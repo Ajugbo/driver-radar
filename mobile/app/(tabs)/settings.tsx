@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -6,7 +6,6 @@ import React from 'react';
 import { ProBadge } from '@/components/RadarUI';
 import { PlatformName, useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
-import { Feather } from '@expo/vector-icons';
 
 const platformCopy: Array<{ name: PlatformName; icon: keyof typeof Ionicons.glyphMap; description: string }> = [
   { name: 'Uber', icon: 'car-outline', description: 'Ride requests and trip status' },
