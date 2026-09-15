@@ -1,51 +1,104 @@
-import type { ApiRide, DriverProfile } from '../../packages/types';
-import type { Currency } from '@/lib/currency-detector';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? 'https://driver-radar.vercel.app';
-let accessToken: string | null = null;
+const BASE_URL = 'https://letsgo-backend-one.vercel.app';
 
-export function setAccessToken(token: string | null) {
-  accessToken = token;
-}
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${apiUrl}${path}`, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...init?.headers },
-  });
-  const text = await response.text();
-  let body: (T & { error?: string; message?: string }) | null = null;
+const getToken = async () => {
   try {
-    body = JSON.parse(text) as T & { error?: string; message?: string };
-  } catch {
-    throw new Error(`Server returned non-JSON: ${text.substring(0, 50) || 'empty response'}`);
+    return await AsyncStorage.getItem('driver_token');
+  } catch (e) {
+    return null;
   }
-  if (!response.ok) throw new Error(body?.message ?? body?.error ?? 'The Driver Radar API is unavailable');
-  if (!body) throw new Error('The Driver Radar API returned an empty response');
-  return body;
-}
-
-export const api = {
-  login: (email: string, password: string, currency?: Currency) => request<{ token: string; driver: DriverProfile; subscription?: SubscriptionStatus }>('/api/auth/login', { method: 'POST', headers: currency ? { 'X-Currency': currency } : undefined, body: JSON.stringify({ email, password }) }),
-  register: (email: string, password: string, currency?: Currency) => request<{ token: string; driver: DriverProfile; subscription?: SubscriptionStatus }>('/api/auth/register', { method: 'POST', headers: currency ? { 'X-Currency': currency } : undefined, body: JSON.stringify({ email, password }) }),
-  subscription: () => request<{ subscription: SubscriptionStatus }>('/api/subscription'),
-  checkout: (countryCode: string, currency: Currency) => request<{ checkout: { checkoutUrl: string; currency: Currency } }>('/api/payment/checkout', { method: 'POST', body: JSON.stringify({ countryCode, currency }) }),
-  rides: () => request<{ rides: ApiRide[] }>('/api/rides/feed'),
-  analytics: () => request<AnalyticsResponse>('/api/analytics'),
-  decision: (rideId: string, decision: 'accepted' | 'declined') => request('/api/rides/decision', { method: 'POST', body: JSON.stringify({ rideId, decision }) }),
-  preferences: (value: unknown) => request('/api/preferences', { method: 'PATCH', body: JSON.stringify(value) }),
 };
 
-export interface AnalyticsResponse {
-  totalEarnings: number;
-  totalTrips: number;
-  averageFare: number;
-  byPlatform: Record<string, { earnings: number; trips: number }>;
+const setToken = async (token: string) => {
+  try {
+    await AsyncStorage.setItem('driver_token', token);
+  } catch (e) {
+    console.error('Failed to save token', e);
+  }
+};
+
+const clearToken = async () => {
+  try {
+    await AsyncStorage.removeItem('driver_token');
+  } catch (e) {
+    console.error('Failed to clear token', e);
+  }
+};
+
+async function apiRequest(endpoint: string, options: RequestInit = {}) {
+  const token = await getToken();
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
+
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `API Error: ${response.status}`);
+  }
+
+  return response.json();
 }
 
-export interface SubscriptionStatus {
-  allowed: boolean;
-  tier: 'free' | 'trial' | 'pro';
-  expiresAt: string;
-  daysRemaining: number;
-}
+export const driverApi = {
+  login: async (phone: string, password: string) => {
+    const data = await apiRequest('/api/auth/driver/login', {
+      method: 'POST',
+      body: JSON.stringify({ phone, password }),
+    });
+    if (data.token) {
+      await setToken(data.token);
+    }
+    return data;
+  },
+
+  logout: async () => {
+    await clearToken();
+  },
+
+  getOffers: async () => {
+    return apiRequest('/api/driver/offers');
+  },
+
+  acceptRide: async (rideId: number) => {
+    return apiRequest('/api/driver/ride/accept', {
+      method: 'POST',
+      body: JSON.stringify({ ride_id: rideId }),
+    });
+  },
+
+  declineRide: async (rideId: number) => {
+    return apiRequest('/api/driver/ride/decline', {
+      method: 'POST',
+      body: JSON.stringify({ ride_id: rideId }),
+    });
+  },
+
+  pickupRide: async (rideId: number) => {
+    return apiRequest('/api/driver/ride/pickup', {
+      method: 'POST',
+      body: JSON.stringify({ ride_id: rideId }),
+    });
+  },
+
+  completeRide: async (rideId: number) => {
+    return apiRequest('/api/driver/ride/complete', {
+      method: 'POST',
+      body: JSON.stringify({ ride_id: rideId }),
+    });
+  },
+
+  getWallet: async () => {
+    return apiRequest('/api/driver/wallet');
+  },
+};
+
+export { setToken, clearToken, getToken };
