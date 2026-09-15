@@ -7,10 +7,12 @@ import { ProBadge } from '@/components/RadarUI';
 import { PlatformName, useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
-const platformCopy: Array<{ name: PlatformName; icon: keyof typeof Ionicons.glyphMap; description: string }> = [
+const platformCopy: Array<{ name: string; icon: keyof typeof Ionicons.glyphMap; description: string }> = [
   { name: 'Uber', icon: 'car-outline', description: 'Ride requests and trip status' },
   { name: 'Bolt', icon: 'flash-outline', description: 'Ride requests and trip status' },
   { name: 'inDrive', icon: 'navigate-outline', description: 'Ride requests and trip status' },
+  { name: 'LetsGo', icon: 'car', description: 'Your custom ride service' },
+  { name: 'Rida', icon: 'speedometer', description: 'Nigerian ride-hailing service' },
 ];
 
 export default function SettingsScreen() {
