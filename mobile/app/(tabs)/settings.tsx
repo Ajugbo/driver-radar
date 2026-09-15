@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -90,4 +90,8 @@ const styles = StyleSheet.create({
   menuTitle: { fontSize: 13, fontWeight: '800' },
   menuSub: { fontSize: 10, marginTop: 3 },
   version: { textAlign: 'center', fontSize: 9, letterSpacing: 1.1, marginTop: 28 },
+
+  settingItem: { marginHorizontal: 20, borderWidth: 1, borderRadius: 16, padding: 13, flexDirection: 'row', alignItems: 'center', marginTop: 9 },
+  settingLeft: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  settingText: { fontSize: 13, fontWeight: '800' },
 });
