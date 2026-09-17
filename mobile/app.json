@@ -2,12 +2,23 @@
   "expo": {
     "name": "Driver Radar",
     "slug": "driver-radar",
-    "projectId": "00000000-0000-0000-0000-000000000000",
     "scheme": "driverradar",
     "version": "1.0.0",
     "orientation": "portrait",
+    "android": {
+      "package": "com.ajugbo.driverradar"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "00000000-0000-0000-0000-000000000000"
+      }
+    },
     "plugins": ["expo-router"],
-    "experiments": { "typedRoutes": true },
-    "web": { "bundler": "metro" }
+    "experiments": {
+      "typedRoutes": true
+    },
+    "web": {
+      "bundler": "metro"
+    }
   }
 }
