@@ -2,6 +2,7 @@
   "expo": {
     "name": "Driver Radar",
     "slug": "driver-radar",
+    "projectId": "00000000-0000-0000-0000-000000000000",
     "scheme": "driverradar",
     "version": "1.0.0",
     "orientation": "portrait",
