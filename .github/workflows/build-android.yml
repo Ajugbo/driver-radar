@@ -25,6 +25,44 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
+      - name: Fetch Expo Project ID
+        id: fetch_id
+        run: |
+          cd mobile
+          echo "🔍 Fetching project ID from Expo API..."
+          RESPONSE=$(curl -s -X POST https://expo.dev/api/graphql \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.EXPO_TOKEN }}" \
+            -d '{"query": "query { app { byAccountNameAndSlug(accountName: \"ajugbo\", slug: \"driver-radar\") { id } } }"}')
+          
+          PROJECT_ID=$(echo $RESPONSE | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+          
+          if [ -z "$PROJECT_ID" ] || [ "$PROJECT_ID" == "null" ]; then
+            echo "⚠️ API did not return ID. Attempting to link/create via eas init..."
+            eas init --account ajugbo --non-interactive || true
+            # Try to read from app.json or eas.json after init
+            PROJECT_ID=$(grep -o '"projectId": *"[^"]*"' app.json | cut -d'"' -f4 || grep -o '"projectId": *"[^"]*"' eas.json | cut -d'"' -f4)
+          fi
+          
+          echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+          echo "✅ Found Project ID: $PROJECT_ID"
+
+      - name: Inject Project ID into app.json
+        run: |
+          cd mobile
+          python3 -c "
+import json, os
+project_id = os.environ.get('PROJECT_ID')
+if not project_id or project_id == 'null':
+    raise Exception('Could not determine Project ID')
+with open('app.json', 'r') as f:
+    data = json.load(f)
+data['expo']['projectId'] = project_id
+with open('app.json', 'w') as f:
+    json.dump(data, f, indent=2)
+print('✅ Injected Project ID into app.json')
+"
+
       - name: Build Android APK
         run: |
           cd mobile
