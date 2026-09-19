@@ -32,25 +32,24 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          echo "🔗 Linking or creating Expo project..."
+          echo "🔗 Linking Expo project..."
           eas init --account ajugbo --non-interactive
-          
-          # Verify that projectId was successfully added to app.json
-          PROJECT_ID=$(node -e "console.log(require('./app.json').expo?.extra?.eas?.projectId || '')")
-          if [ -z "$PROJECT_ID" ] || [ "$PROJECT_ID" = "00000000-0000-0000-0000-000000000000" ]; then
-            echo "::error::Failed to get Project ID after eas init."
-            exit 1
-          fi
-          echo "✅ Successfully configured Project ID: $PROJECT_ID"
+          echo "✅ Project linked."
 
-      - name: Build Android APK
+      - name: Build and Download Android APK
         working-directory: mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas build --profile production --platform android --non-interactive
+        run: |
+          echo "🚀 Starting build..."
+          eas build --profile production --platform android --non-interactive --wait
+          
+          echo "⬇️ Downloading APK..."
+          eas build:download --latest --platform android --output ./driver-radar.apk
+          echo "✅ APK downloaded to ./driver-radar.apk"
 
-      - name: Upload APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: driver-radar-android
-          path: mobile/*.apk
+          name: driver-radar-android-apk
+          path: mobile/driver-radar.apk
