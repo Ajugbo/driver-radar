@@ -8,11 +8,6 @@
     "android": {
       "package": "com.ajugbo.driverradar"
     },
-    "extra": {
-      "eas": {
-        "projectId": "00000000-0000-0000-0000-000000000000"
-      }
-    },
     "plugins": ["expo-router"],
     "experiments": {
       "typedRoutes": true
