@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -15,61 +16,68 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
 
       - name: Install dependencies
-        run: |
-          cd mobile
-          npm install
+        working-directory: mobile
+        run: npm ci
 
       - name: Install EAS CLI
-        run: npm install -g eas-cli
+        run: npm install --global eas-cli
 
-      - name: Fetch Expo Project ID
-        id: fetch_id
+      - name: Fetch Project ID from Expo and Inject
+        working-directory: mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          cd mobile
-          echo "🔍 Fetching project ID from Expo API..."
-          RESPONSE=$(curl -s -X POST https://expo.dev/api/graphql \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $EXPO_TOKEN" \
-            -d '{"query": "query { app { byAccountNameAndSlug(accountName: \"ajugbo\", slug: \"driver-radar\") { id } } }"}')
-          
-          PROJECT_ID=$(echo $RESPONSE | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
-          
-          if [ -z "$PROJECT_ID" ] || [ "$PROJECT_ID" == "null" ]; then
-            echo "⚠️ API did not return ID. Attempting to link/create via eas init..."
-            eas init --account ajugbo --non-interactive || true
-            PROJECT_ID=$(grep -o '"projectId": *"[^"]*"' app.json | head -1 | cut -d'"' -f4)
-          fi
-          
-          echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
-          echo "✅ Found Project ID: $PROJECT_ID"
+          node -e "
+            const https = require('https');
+            const fs = require('fs');
 
-      - name: Inject Project ID into app.json
-        run: |
-          cd mobile
-          node - <<'NODE'
-          const fs = require('fs');
-          const path = 'app.json';
-          const app = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const data = JSON.stringify({
+              query: 'query { app { byAccountNameAndSlug(accountName: \"ajugbo\", slug: \"driver-radar\") { id } } }'
+            });
 
-          app.expo.extra ??= {};
-          app.expo.extra.eas ??= {};
-          app.expo.extra.eas.projectId = process.env.PROJECT_ID;
+            const options = {
+              hostname: 'expo.dev',
+              path: '/api/graphql',
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + process.env.EXPO_TOKEN
+              }
+            };
 
-          fs.writeFileSync(path, JSON.stringify(app, null, 2) + '\n');
-          console.log('✅ Injected EAS project ID:', process.env.PROJECT_ID);
-          NODE
+            const req = https.request(options, (res) => {
+              let body = '';
+              res.on('data', (chunk) => body += chunk);
+              res.on('end', () => {
+                const json = JSON.parse(body);
+                const id = json?.data?.app?.byAccountNameAndSlug?.id;
+                if (!id) {
+                  console.error('Failed to get ID:', body);
+                  process.exit(1);
+                }
+                console.log('✅ Found Project ID:', id);
+                
+                const app = JSON.parse(fs.readFileSync('./app.json', 'utf8'));
+                app.expo.extra = app.expo.extra || {};
+                app.expo.extra.eas = app.expo.extra.eas || {};
+                app.expo.extra.eas.projectId = id;
+                fs.writeFileSync('./app.json', JSON.stringify(app, null, 2));
+              });
+            });
+            req.write(data);
+            req.end();
+          "
 
       - name: Build Android APK
-        run: |
-          cd mobile
-          eas build --profile production --platform android --non-interactive
+        working-directory: mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --profile production --platform android --non-interactive
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
