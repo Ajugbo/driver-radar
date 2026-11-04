@@ -1,20 +1,9 @@
 {
   "version": 2,
-  "functions": {
-    "api/*.ts": {
-      "runtime": "@vercel/node@12.0.1",
-      "maxDuration": 10
-    },
-    "api/auth/*.ts": {
-      "runtime": "@vercel/node@12.0.1",
-      "maxDuration": 10
-    },
-    "api/rides/*.ts": {
-      "runtime": "@vercel/node@12.0.1",
-      "maxDuration": 10
+  "builds": [
+    {
+      "src": "api/**/*.ts",
+      "use": "@vercel/node@14.3.0"
     }
-  },
-  "buildCommand": "npm run typecheck",
-  "installCommand": "npm install",
-  "framework": null
+  ]
 }
