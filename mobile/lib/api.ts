@@ -1,6 +1,8 @@
 import type { ApiRide, DriverProfile } from '../../packages/types';
 
-const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? 'https://driver-radar.vercel.app';
+const apiUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://driver-radar.vercel.app').replace(/\/+$/, '');
+const healthCheckUrl = `${apiUrl}/api/healthz`;
+console.log(`[API] Health check URL: ${healthCheckUrl}`);
 let accessToken: string | null = null;
 
 export function setAccessToken(token: string | null) {
@@ -18,6 +20,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  health: () => request<{ ok: boolean; service: string; databaseConfigured: boolean; timestamp: string }>('/api/healthz'),
   login: (email: string, password: string) => request<{ token: string; driver: DriverProfile }>('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   register: (email: string, password: string) => request<{ token: string; driver: DriverProfile }>('/api/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) }),
   rides: () => request<{ rides: ApiRide[] }>('/api/rides/feed'),
