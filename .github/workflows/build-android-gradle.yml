@@ -41,7 +41,10 @@ jobs:
         run: |
           cd android
           chmod +x ./gradlew
-          ./gradlew assembleDebug --no-daemon
+          export EXPO_USE_BUNDLE=1
+          ./gradlew assembleDebug --no-daemon \
+            -PreactNativeArchitectures=arm64-v8a \
+            -Pexpo.jsEngine=hermes
 
       - name: Find and Prepare APK
         run: |
