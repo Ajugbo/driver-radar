@@ -5,8 +5,7 @@
   "description": "Driver Radar API and Expo client",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "vercel-build": "npm install --legacy-peer-deps && vercel build"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
