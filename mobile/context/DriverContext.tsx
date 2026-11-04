@@ -95,8 +95,8 @@ export function DriverProvider({ children }: { children: ReactNode }) {
     }).catch(() => setIsHydrated(true));
   }, []);
   useEffect(() => {
-    if (token && remoteRides.data?.rides) {
-      setRides(remoteRides.data.rides);
+    if (token && remoteRides.data?.offers) {
+      setRides(remoteRides.data.offers);
       setLastSync('Just now');
     }
   }, [remoteRides.data, token]);

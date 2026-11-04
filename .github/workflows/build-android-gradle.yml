@@ -32,16 +32,27 @@ jobs:
           java-version: '17'
 
       - name: Install dependencies
-        run: npm install
-
-      - name: Generate native Android project
-        run: npx expo prebuild --platform android --no-install
+        run: npm ci
 
       - name: Build Debug APK
+        working-directory: .
         run: |
+          cd mobile
+
+          # Clean prebuild regenerates the Android project from Expo config
+          npx expo prebuild --platform android --clean --no-install
+
+          # Generate production bundle into assets
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle \
+            --platform android \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output android/app/src/main/assets/index.android.bundle \
+            --assets-dest android/app/src/main/res
+
+          # Build with Hermes + ARM64
           cd android
-          chmod +x ./gradlew
-          export EXPO_USE_BUNDLE=1
           ./gradlew assembleDebug --no-daemon \
             -PreactNativeArchitectures=arm64-v8a \
             -Pexpo.jsEngine=hermes
