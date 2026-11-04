@@ -1,6 +1,7 @@
 android/
 node_modules/
-android/
 *.apk
 .next/
 dist/
+.expo/
+ios/

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
-import { api, setAccessToken } from '@/lib/api';
+import { api, driverApi, setAccessToken } from '@/lib/api';
 
 export type PlatformName = 'Uber' | 'Bolt' | 'inDrive';
 export type RideStatus = 'pending' | 'accepted' | 'declined' | 'expired';
@@ -78,7 +78,7 @@ export function DriverProvider({ children }: { children: ReactNode }) {
   const [lastSync, setLastSync] = useState('Just now');
   const remoteRides = useQuery({
     queryKey: ['rides'],
-    queryFn: api.rides,
+    queryFn: driverApi.getOffers,
     enabled: Boolean(token) && isListenerLive,
     staleTime: 15_000,
     refetchInterval: isListenerLive ? 15_000 : false,

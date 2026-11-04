@@ -24,3 +24,7 @@ export const api = {
   decision: (rideId: string, decision: 'accepted' | 'declined') => request('/api/rides/decision', { method: 'POST', body: JSON.stringify({ rideId, decision }) }),
   preferences: (value: unknown) => request('/api/preferences', { method: 'PATCH', body: JSON.stringify(value) }),
 };
+
+export const driverApi = {
+  getOffers: api.rides,
+};
