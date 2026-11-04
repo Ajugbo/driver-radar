@@ -3,7 +3,7 @@
   "builds": [
     {
       "src": "api/**/*.ts",
-      "use": "@vercel/node@14.3.0"
+      "use": "@vercel/node@13.0.0"
     }
   ]
 }
