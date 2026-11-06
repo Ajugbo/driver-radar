@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { api, driverApi, setAccessToken } from '@/lib/api';
 
-export type PlatformName = 'Uber' | 'Bolt' | 'inDrive';
+export type PlatformName = 'Uber' | 'Bolt' | 'inDrive' | 'LetzGo';
 export type RideStatus = 'pending' | 'accepted' | 'declined' | 'expired';
 export interface Ride {
   id: string;
@@ -61,7 +61,7 @@ const seedRides: Ride[] = [
   { id: 'ride-004', platform: 'Bolt', fare: 7600, distance: 3.8, pickup: 'Asokoro', dropoff: 'Katampe', rating: 4.78, eta: '6 min', status: 'accepted', timestamp: 'Today, 08:42' },
 ];
 const defaultFilters: Filters = { minFare: 2500, maxRadius: 3, minRating: null, blacklistedZones: ['Airport Road'] };
-const defaultPlatforms: Record<PlatformName, boolean> = { Uber: true, Bolt: true, inDrive: true };
+const defaultPlatforms: Record<PlatformName, boolean> = { Uber: true, Bolt: true, inDrive: true, LetzGo: true };
 const demoDriver: DriverIdentity = { id: 0, email: 'demo@driverradar.ng', subscriptionTier: 'free' };
 
 const DriverContext = createContext<DriverContextValue | null>(null);
@@ -88,7 +88,7 @@ export function DriverProvider({ children }: { children: ReactNode }) {
     AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
       if (stored) {
         const state = JSON.parse(stored) as Partial<{ rides: Ride[]; filters: Filters; platforms: Record<PlatformName, boolean>; token: string | null; driver: DriverIdentity }>;
-        setRides(state.rides ?? seedRides); setFilters(state.filters ?? defaultFilters); setPlatforms(state.platforms ?? defaultPlatforms);
+        setRides(state.rides ?? seedRides); setFilters(state.filters ?? defaultFilters); setPlatforms({ ...defaultPlatforms, ...state.platforms });
         setToken(state.token ?? null); setDriver(state.driver ?? demoDriver); setAccessToken(state.token ?? null);
       }
       setIsHydrated(true);

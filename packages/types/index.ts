@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const platformSchema = z.enum(['Uber', 'Bolt', 'inDrive']);
+export const platformSchema = z.enum(['Uber', 'Bolt', 'inDrive', 'LetzGo']);
 export const rideStatusSchema = z.enum(['pending', 'accepted', 'declined', 'expired']);
 export const authInputSchema = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128) });
 export const preferencesSchema = z.object({

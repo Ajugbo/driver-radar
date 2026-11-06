@@ -11,6 +11,7 @@ const platformCopy: Array<{ name: PlatformName; icon: keyof typeof Ionicons.glyp
   { name: 'Uber', icon: 'car-outline', description: 'Ride requests and trip status' },
   { name: 'Bolt', icon: 'flash-outline', description: 'Ride requests and trip status' },
   { name: 'inDrive', icon: 'navigate-outline', description: 'Ride requests and trip status' },
+  { name: 'LetzGo', icon: 'car-outline', description: 'Ride requests and trip status' },
 ];
 
 export default function SettingsScreen() {
