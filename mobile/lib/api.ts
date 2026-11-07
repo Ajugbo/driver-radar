@@ -1,4 +1,4 @@
-import type { ApiRide, DriverProfile } from '../../packages/types';
+import type { ApiRide, DriverProfile, PlatformDiscovery } from '../../packages/types';
 
 const apiUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://driver-radar.vercel.app').replace(/\/+$/, '');
 const letsGoApiUrl = (process.env.EXPO_PUBLIC_LETZGO_API_URL ?? 'https://letsgo-backend-one.vercel.app').replace(/\/+$/, '');
@@ -30,11 +30,12 @@ export function getOffers(): Promise<{ offers: ApiRide[] }> {
 
 export const api = {
   health: () => request<{ ok: boolean; service: string; databaseConfigured: boolean; timestamp: string }>(apiUrl, '/api/healthz'),
-  login: (email: string, password: string) => request<{ token: string; driver: DriverProfile }>(apiUrl, '/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  login: (phone: string, password: string) => request<{ token: string; driver: DriverProfile }>(apiUrl, '/api/auth/driver/login', { method: 'POST', body: JSON.stringify({ phone, password }) }),
   register: (email: string, password: string) => request<{ token: string; driver: DriverProfile }>(apiUrl, '/api/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) }),
   rides: () => request<{ rides: ApiRide[] }>(apiUrl, '/api/rides/feed'),
   decision: (rideId: string, decision: 'accepted' | 'declined') => request(apiUrl, '/api/rides/decision', { method: 'POST', body: JSON.stringify({ rideId, decision }) }),
   preferences: (value: unknown) => request(apiUrl, '/api/preferences', { method: 'PATCH', body: JSON.stringify(value) }),
+  platforms: () => request<PlatformDiscovery[]>(apiUrl, '/api/platforms'),
 };
 
 export const driverApi = {

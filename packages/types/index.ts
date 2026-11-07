@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const platformSchema = z.enum(['Uber', 'Bolt', 'inDrive', 'LetzGo']);
+export const platformSchema = z.enum(['Uber', 'Bolt', 'inDrive', 'LetzGo', 'Rida']);
 export const rideStatusSchema = z.enum(['pending', 'accepted', 'declined', 'expired']);
 export const authInputSchema = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128) });
 export const preferencesSchema = z.object({
@@ -28,9 +28,18 @@ export type RideDecisionInput = z.infer<typeof rideDecisionSchema>;
 export type PlatformConnectionInput = z.infer<typeof platformConnectionSchema>;
 export type SubscriptionInput = z.infer<typeof subscriptionSchema>;
 
+export const platformDiscoverySchema = z.object({
+  id: z.string().trim().min(1).max(100),
+  name: z.string().trim().min(1).max(100),
+  type: z.enum(['notification', 'api']),
+  packageName: z.string().trim().min(1).max(255).optional(),
+  baseUrl: z.string().url().optional(),
+});
+export type PlatformDiscovery = z.infer<typeof platformDiscoverySchema>;
+
 export interface ApiRide {
   id: string;
-  platform: PlatformName;
+  platform: string;
   fare: number;
   distance: number;
   pickup: string;

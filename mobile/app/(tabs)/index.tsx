@@ -11,7 +11,7 @@ import { useColors } from '@/hooks/useColors';
 export default function RadarScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { visibleRides, filters, rides, isListenerLive, isFeedLoading, listenerError, toggleListener, acceptRide, declineRide, lastSync, driver } = useDriver();
+  const { visibleRides, filters, rides, availablePlatforms, isListenerLive, isFeedLoading, listenerError, toggleListener, acceptRide, declineRide, lastSync, driver } = useDriver();
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
   const pendingCount = visibleRides.length;
@@ -56,6 +56,15 @@ export default function RadarScreen() {
           </View>
 
           <FilterSummary filters={filters} />
+          <SectionLabel eyebrow="AVAILABLE SOURCES" title="Platform network" action={`${availablePlatforms.length} platforms`} />
+          <View style={styles.platformList}>
+            {availablePlatforms.map((platform) => (
+              <View key={platform.id} style={[styles.platformChip, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Text style={[styles.platformChipName, { color: colors.foreground }]}>{platform.name}</Text>
+                <Text style={[styles.platformChipType, { color: colors.mutedForeground }]}>{platform.type === 'api' ? 'API' : 'NOTIFICATIONS'}</Text>
+              </View>
+            ))}
+          </View>
           <SectionLabel eyebrow="UNIFIED STREAM" title="Incoming requests" action="3 sources" />
           {visibleRides.length ? visibleRides.map((ride) => <RideCard key={ride.id} ride={ride} onAccept={() => acceptRide(ride.id)} onDecline={() => declineRide(ride.id)} />) : (
             <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -90,6 +99,10 @@ const styles = StyleSheet.create({
   earningsBadge: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 5 },
   earningsBadgeText: { fontSize: 11, fontWeight: '800' },
   content: { paddingHorizontal: 20 },
+  platformList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 19 },
+  platformChip: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 11, paddingVertical: 8 },
+  platformChipName: { fontSize: 11, fontWeight: '800' },
+  platformChipType: { fontSize: 8, letterSpacing: 0.6, marginTop: 3 },
   radarMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 2, marginTop: 11, marginBottom: 19 },
   countWrap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   pulseDot: { width: 7, height: 7, borderRadius: 4 },

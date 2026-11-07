@@ -4,20 +4,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
 import { ProBadge } from '@/components/RadarUI';
-import { PlatformName, useDriver } from '@/context/DriverContext';
+import { useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
-const platformCopy: Array<{ name: PlatformName; icon: keyof typeof Ionicons.glyphMap; description: string }> = [
-  { name: 'Uber', icon: 'car-outline', description: 'Ride requests and trip status' },
-  { name: 'Bolt', icon: 'flash-outline', description: 'Ride requests and trip status' },
-  { name: 'inDrive', icon: 'navigate-outline', description: 'Ride requests and trip status' },
-  { name: 'LetzGo', icon: 'car-outline', description: 'Ride requests and trip status' },
-];
+const platformIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
+  Uber: 'car-outline',
+  Bolt: 'flash-outline',
+  inDrive: 'navigate-outline',
+  LetzGo: 'car-outline',
+  Rida: 'car-outline',
+};
 
 export default function SettingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { platforms, togglePlatform, driver, isPro, signOut } = useDriver();
+  const { platforms, availablePlatforms, togglePlatform, isLiveLetzGoApi, toggleLiveLetzGoApi, driver, isPro, signOut } = useDriver();
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
 
@@ -35,13 +36,21 @@ export default function SettingsScreen() {
         </View>
         <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>PLATFORM LISTENERS</Text>
         <View style={[styles.listCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {platformCopy.map((platform, index) => (
-            <View key={platform.name} style={[styles.platformRow, index < platformCopy.length - 1 && { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
-              <View style={[styles.platformIcon, { backgroundColor: colors.accent }]}><Ionicons name={platform.icon} size={18} color={colors.primary} /></View>
-              <View style={styles.platformCopy}><Text style={[styles.platformName, { color: colors.foreground }]}>{platform.name}</Text><Text style={[styles.platformDescription, { color: colors.mutedForeground }]}>{platforms[platform.name] ? platform.description : 'Listener paused'}</Text></View>
-              <Pressable testID={`platform-${platform.name}`} onPress={() => togglePlatform(platform.name)} style={[styles.switch, { backgroundColor: platforms[platform.name] ? colors.primary : colors.input }]}><View style={[styles.switchKnob, { backgroundColor: platforms[platform.name] ? colors.primaryForeground : colors.mutedForeground, alignSelf: platforms[platform.name] ? 'flex-end' : 'flex-start' }]} /></Pressable>
-            </View>
-          ))}
+          {availablePlatforms.map((platform, index) => {
+            const enabled = platforms[platform.id] ?? true;
+            return (
+              <View key={platform.id} style={[styles.platformRow, index < availablePlatforms.length - 1 && { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
+                <View style={[styles.platformIcon, { backgroundColor: colors.accent }]}><Ionicons name={platformIcons[platform.id] ?? 'apps-outline'} size={18} color={colors.primary} /></View>
+                <View style={styles.platformCopy}><Text style={[styles.platformName, { color: colors.foreground }]}>{platform.name}</Text><Text style={[styles.platformDescription, { color: colors.mutedForeground }]}>{enabled ? `${platform.type === 'api' ? 'Live API' : 'Notification'} listener` : 'Listener paused'}</Text></View>
+                <Pressable testID={`platform-${platform.id}`} accessibilityRole="switch" accessibilityState={{ checked: enabled }} onPress={() => togglePlatform(platform.id)} style={[styles.switch, { backgroundColor: enabled ? colors.primary : colors.input }]}><View style={[styles.switchKnob, { backgroundColor: enabled ? colors.primaryForeground : colors.mutedForeground, alignSelf: enabled ? 'flex-end' : 'flex-start' }]} /></Pressable>
+              </View>
+            );
+          })}
+          <View style={[styles.platformRow, { borderTopColor: colors.border, borderTopWidth: 1 }]}>
+            <View style={[styles.platformIcon, { backgroundColor: colors.accent }]}><Ionicons name="radio-outline" size={18} color={colors.primary} /></View>
+            <View style={styles.platformCopy}><Text style={[styles.platformName, { color: colors.foreground }]}>Use Live LetzGo API</Text><Text style={[styles.platformDescription, { color: colors.mutedForeground }]}>Fetch LetzGo offers from its live API</Text></View>
+            <Pressable testID="live-letzgo-api" accessibilityRole="switch" accessibilityState={{ checked: isLiveLetzGoApi }} onPress={toggleLiveLetzGoApi} style={[styles.switch, { backgroundColor: isLiveLetzGoApi ? colors.primary : colors.input }]}><View style={[styles.switchKnob, { backgroundColor: isLiveLetzGoApi ? colors.primaryForeground : colors.mutedForeground, alignSelf: isLiveLetzGoApi ? 'flex-end' : 'flex-start' }]} /></Pressable>
+          </View>
         </View>
         <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>ACCOUNT</Text>
         <Pressable testID="upgrade-link" onPress={() => router.push('/paywall')} style={[styles.menuRow, { backgroundColor: colors.card, borderColor: colors.border }]}>

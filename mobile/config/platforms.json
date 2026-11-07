@@ -1,0 +1,32 @@
+[
+  {
+    "id": "Uber",
+    "name": "Uber",
+    "type": "notification",
+    "packageName": "com.ubercab.driver"
+  },
+  {
+    "id": "Bolt",
+    "name": "Bolt",
+    "type": "notification",
+    "packageName": "com.bolt.driver"
+  },
+  {
+    "id": "inDrive",
+    "name": "inDrive",
+    "type": "notification",
+    "packageName": "sinet.startup.inDriver"
+  },
+  {
+    "id": "LetzGo",
+    "name": "LetzGo",
+    "type": "api",
+    "packageName": "com.letzgo.driver"
+  },
+  {
+    "id": "Rida",
+    "name": "Rida",
+    "type": "notification",
+    "packageName": "com.rida.driver"
+  }
+]

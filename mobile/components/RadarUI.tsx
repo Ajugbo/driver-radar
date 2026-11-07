@@ -1,13 +1,13 @@
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { DimensionValue, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Filters, formatNgn, PlatformName, Ride } from '@/context/DriverContext';
+import { Filters, formatNgn, Ride } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 import React, { useEffect } from 'react';
 import { ScanlineOverlay } from '@/src/components/ScanlineOverlay';
 import cyberpunkColors from '@/src/components/colors';
 
-function platformColor(platform: PlatformName, colors: ReturnType<typeof useColors>) {
+function platformColor(platform: string, colors: ReturnType<typeof useColors>) {
   if (platform === 'Uber') return colors.foreground;
   if (platform === 'Bolt') return colors.primary;
   return cyberpunkColors.hotPink;

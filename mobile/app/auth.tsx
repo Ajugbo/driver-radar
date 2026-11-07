@@ -11,7 +11,7 @@ export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const { login, register } = useDriver(); // Removed continueAsDemo
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('');
+  const [credential, setCredential] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false); // Added password toggle state
   const [busy, setBusy] = useState(false);
@@ -21,13 +21,13 @@ export default function AuthScreen() {
 
   const submit = async () => {
     setError('');
-    if (!email.includes('@') || password.length < 8) {
-      setError('Use a valid email and a password with at least 8 characters.');
+    if ((mode === 'login' ? credential.trim().length < 5 : !credential.includes('@')) || password.length < 8) {
+      setError(mode === 'login' ? 'Use a valid phone number and a password with at least 8 characters.' : 'Use a valid email and a password with at least 8 characters.');
       return;
     }
     setBusy(true);
     try {
-      await (mode === 'login' ? login(email, password) : register(email, password));
+      await (mode === 'login' ? login(credential.trim(), password) : register(credential.trim(), password));
       router.dismiss();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to reach the driver server.');
@@ -47,8 +47,8 @@ export default function AuthScreen() {
           <Text style={[styles.copy, { color: colors.mutedForeground }]}>{mode === 'login' ? 'Sign in to sync your filters, connections, and ride history.' : 'Create your driver account and start filtering the noise.'}</Text>
         </View>
         <View style={styles.form}>
-          <Text style={[styles.label, { color: colors.mutedForeground }]}>EMAIL</Text>
-          <TextInput testID="email-input" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={colors.mutedForeground} style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]} />
+          <Text style={[styles.label, { color: colors.mutedForeground }]}>{mode === 'login' ? 'PHONE NUMBER' : 'EMAIL'}</Text>
+          <TextInput testID={mode === 'login' ? 'phone-input' : 'email-input'} value={credential} onChangeText={setCredential} autoCapitalize="none" keyboardType={mode === 'login' ? 'phone-pad' : 'email-address'} placeholder={mode === 'login' ? '+234 800 000 0000' : 'you@example.com'} placeholderTextColor={colors.mutedForeground} style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]} />
           
           <Text style={[styles.label, { color: colors.mutedForeground, marginTop: 14 }]}>PASSWORD</Text>
           <View style={[styles.passwordContainer, { borderColor: colors.border, backgroundColor: colors.card }]}>
@@ -70,11 +70,11 @@ export default function AuthScreen() {
           
           <Pressable testID="submit-auth" onPress={submit} disabled={busy} style={({ pressed }) => [styles.submit, { backgroundColor: colors.primary, opacity: busy || pressed ? 0.65 : 1 }]}><Text style={[styles.submitText, { color: colors.primaryForeground }]}>{busy ? 'Connecting...' : mode === 'login' ? 'Sign in' : 'Create account'}</Text><Feather name="arrow-up-right" size={17} color={colors.primaryForeground} /></Pressable>
           
-          <Pressable testID="google-auth" onPress={() => setError('Google OAuth is scaffolded for the next provider connection. Use email/password for this preview.')} style={[styles.google, { borderColor: colors.border }]}><Ionicons name="logo-google" size={16} color={colors.foreground} /><Text style={[styles.googleText, { color: colors.foreground }]}>Continue with Google</Text></Pressable>
+          <Pressable testID="google-auth" onPress={() => setError('Google OAuth is scaffolded for the next provider connection. Use phone/password to sign in or email/password to register.')} style={[styles.google, { borderColor: colors.border }]}><Ionicons name="logo-google" size={16} color={colors.foreground} /><Text style={[styles.googleText, { color: colors.foreground }]}>Continue with Google</Text></Pressable>
         </View>
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: colors.mutedForeground }]}>{mode === 'login' ? 'New to Driver Radar?' : 'Already have an account?'}</Text>
-          <Pressable onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}><Text style={[styles.footerLink, { color: colors.primary }]}>{mode === 'login' ? 'Create account' : 'Sign in'}</Text></Pressable>
+          <Pressable onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setCredential(''); setError(''); }}><Text style={[styles.footerLink, { color: colors.primary }]}>{mode === 'login' ? 'Create account' : 'Sign in'}</Text></Pressable>
         </View>
         {/* Demo mode button completely removed */}
       </ScrollView>

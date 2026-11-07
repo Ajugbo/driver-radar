@@ -26,7 +26,7 @@ export default function PaywallScreen() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${driver.token || ''}` 
+          'Authorization': `Bearer ${driver?.token ?? ""}` 
         },
         body: JSON.stringify({ 
           driverId: driver.id,
