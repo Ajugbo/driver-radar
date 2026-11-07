@@ -47,12 +47,20 @@ async function requestAt<T>(baseUrl: string, path: string, init?: RequestInit): 
     ...init,
     headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...init?.headers },
   });
+  
+  const contentType = response.headers.get('content-type') || '';
   const text = await response.text();
+  
+  if (!contentType.includes('application/json')) {
+    console.error('[API] Non-JSON response from', `${baseUrl}${path}`, ':', text.substring(0, 200));
+    throw new Error(`Server returned non-JSON response (${response.status}). Check backend route.`);
+  }
+  
   try {
     const body = JSON.parse(text);
-    if (!response.ok) throw new Error(body.error ?? 'Request failed');
-    return body;
-  } catch (e) {
-    throw new Error(`Failed to parse response: ${text.substring(0, 100)}`);
+    if (!response.ok) throw new Error(body.error ?? `Request failed with status ${response.status}`);
+    return body as T;
+  } catch (e: any) {
+    throw new Error(`Invalid JSON from server: ${e.message}. Raw: ${text.substring(0, 100)}`);
   }
 }
