@@ -40,3 +40,18 @@ export const api = {
 export const driverApi = {
   getOffers,
 };
+
+async function requestAt<T>(baseUrl: string, path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${baseUrl}${path}`, {
+    ...init,
+    headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...init?.headers },
+  });
+  const text = await response.text();
+  try {
+    const body = JSON.parse(text);
+    if (!response.ok) throw new Error(body.error ?? 'Request failed');
+    return body;
+  } catch (e) {
+    throw new Error(`Failed to parse response: ${text.substring(0, 100)}`);
+  }
+}
