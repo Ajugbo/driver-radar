@@ -76,9 +76,29 @@ export function DriverProvider({ children }: { children: ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [isListenerLive, setIsListenerLive] = useState(true);
   const [lastSync, setLastSync] = useState('Just now');
+  useEffect(() => {
+    console.log('[LetzGo] polling gate', {
+      authenticated: Boolean(token),
+      masterListenerEnabled: isListenerLive,
+      platformEnabled: platforms.LetzGo,
+      pollingEnabled: Boolean(token) && isListenerLive,
+    });
+  }, [isListenerLive, platforms.LetzGo, token]);
   const remoteRides = useQuery({
     queryKey: ['rides'],
-    queryFn: driverApi.getOffers,
+    queryFn: async () => {
+      try {
+        const result = await driverApi.getOffers();
+        console.log('[LetzGo] offers received', {
+          count: result.offers.length,
+          firstPlatform: result.offers[0]?.platform ?? null,
+        });
+        return result;
+      } catch (error) {
+        console.log('[LetzGo] offers request failed', error instanceof Error ? error.message : String(error));
+        throw error;
+      }
+    },
     enabled: Boolean(token) && isListenerLive,
     staleTime: 15_000,
     refetchInterval: isListenerLive ? 15_000 : false,

@@ -1,3 +1,5 @@
+import { installCrashCapture } from '../lib/crashCapture';
+installCrashCapture();
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import React from 'react';
 import { Alert } from 'react-native';
