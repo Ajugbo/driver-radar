@@ -1,9 +1,8 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
-import { ProBadge } from '@/components/RadarUI';
 import { useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
@@ -18,19 +17,19 @@ const platformIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
 export default function SettingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { platforms, availablePlatforms, togglePlatform, isLiveLetzGoApi, toggleLiveLetzGoApi, driver, isPro, signOut } = useDriver();
+  const { platforms, availablePlatforms, togglePlatform, driver, signOut } = useDriver();
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: topInset + 18, paddingBottom: bottomInset + 95 }}>
-        <View style={styles.headingRow}><View><Text style={[styles.kicker, { color: colors.primary }]}>SYSTEM / 04</Text><Text style={[styles.heading, { color: colors.foreground }]}>Connections</Text></View><ProBadge /></View>
+        <View style={styles.headingRow}><View><Text style={[styles.kicker, { color: colors.primary }]}>SYSTEM / 04</Text><Text style={[styles.heading, { color: colors.foreground }]}>Connections</Text></View></View>
         <View style={[styles.identityCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.identityMark, { backgroundColor: colors.primary }]}><Text style={[styles.identityLetter, { color: colors.primaryForeground }]}>{driver.email.slice(0, 1).toUpperCase()}</Text></View>
+          <View style={[styles.identityMark, { backgroundColor: colors.primary }]}><Text style={[styles.identityLetter, { color: colors.primaryForeground }]}>{driver.email.slice(0, 1).toUpperCase() || 'D'}</Text></View>
           <View style={styles.identityCopy}>
-            <Text style={[styles.identityName, { color: colors.foreground }]}>{driver.email}</Text>
-            <Text style={[styles.identitySub, { color: colors.mutedForeground }]}>{isPro ? 'Radar Pro member' : 'Free plan'}</Text>
+            <Text style={[styles.identityName, { color: colors.foreground }]}>{driver.email || 'Driver account'}</Text>
+            <Text style={[styles.identitySub, { color: colors.mutedForeground }]}>Authenticated account</Text>
           </View>
           <Pressable testID="auth-link" onPress={() => router.push('/auth')}><Feather name="edit-3" size={16} color={colors.mutedForeground} /></Pressable>
         </View>
@@ -46,17 +45,17 @@ export default function SettingsScreen() {
               </View>
             );
           })}
-          <View style={[styles.platformRow, { borderTopColor: colors.border, borderTopWidth: 1 }]}>
-            <View style={[styles.platformIcon, { backgroundColor: colors.accent }]}><Ionicons name="radio-outline" size={18} color={colors.primary} /></View>
-            <View style={styles.platformCopy}><Text style={[styles.platformName, { color: colors.foreground }]}>Use Live LetzGo API</Text><Text style={[styles.platformDescription, { color: colors.mutedForeground }]}>Fetch LetzGo offers from its live API</Text></View>
-            <Pressable testID="live-letzgo-api" accessibilityRole="switch" accessibilityState={{ checked: isLiveLetzGoApi }} onPress={toggleLiveLetzGoApi} style={[styles.switch, { backgroundColor: isLiveLetzGoApi ? colors.primary : colors.input }]}><View style={[styles.switchKnob, { backgroundColor: isLiveLetzGoApi ? colors.primaryForeground : colors.mutedForeground, alignSelf: isLiveLetzGoApi ? 'flex-end' : 'flex-start' }]} /></Pressable>
-          </View>
         </View>
         <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>ACCOUNT</Text>
-        <Pressable testID="upgrade-link" onPress={() => router.push('/paywall')} style={[styles.menuRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.menuIcon, { backgroundColor: colors.accent }]}><Ionicons name="flash" size={16} color={colors.primary} /></View><View style={styles.menuCopy}><Text style={[styles.menuTitle, { color: colors.foreground }]}>Radar Pro</Text><Text style={[styles.menuSub, { color: colors.mutedForeground }]}>Unlimited platforms and priority pings</Text></View><Feather name="chevron-right" size={17} color={colors.mutedForeground} />
-        </Pressable>
-        <Pressable testID="sign-out" onPress={() => signOut()} style={[styles.menuRow, { backgroundColor: colors.card, borderColor: colors.border, marginTop: 9 }]}>
+        <Pressable testID="sign-out" onPress={async () => {
+          try {
+            await signOut();
+            router.replace('/auth');
+          } catch (error) {
+            console.error('[Auth] Failed to clear stored session', error);
+            Alert.alert('Sign-out failed', 'The saved session could not be cleared. Please try again.');
+          }
+        }} style={[styles.menuRow, { backgroundColor: colors.card, borderColor: colors.border, marginTop: 9 }]}>
           <View style={[styles.menuIcon, { backgroundColor: colors.muted }]}><Feather name="log-out" size={16} color={colors.mutedForeground} /></View><View style={styles.menuCopy}><Text style={[styles.menuTitle, { color: colors.foreground }]}>Sign out</Text><Text style={[styles.menuSub, { color: colors.mutedForeground }]}>Sign out of your account</Text></View>
         </Pressable>
         <Text style={[styles.version, { color: colors.mutedForeground }]}>DRIVER RADAR v1.0.0</Text>

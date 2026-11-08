@@ -9,11 +9,11 @@ import { useColors } from '@/hooks/useColors';
 export default function AuthScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { login, register } = useDriver(); // Removed continueAsDemo
+  const { login, register } = useDriver();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [credential, setCredential] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Added password toggle state
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
@@ -28,7 +28,7 @@ export default function AuthScreen() {
     setBusy(true);
     try {
       await (mode === 'login' ? login(credential.trim(), password) : register(credential.trim(), password));
-      router.dismiss();
+      router.replace('/(tabs)');
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to reach the driver server.');
     } finally {
@@ -76,7 +76,6 @@ export default function AuthScreen() {
           <Text style={[styles.footerText, { color: colors.mutedForeground }]}>{mode === 'login' ? 'New to Driver Radar?' : 'Already have an account?'}</Text>
           <Pressable onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setCredential(''); setError(''); }}><Text style={[styles.footerLink, { color: colors.primary }]}>{mode === 'login' ? 'Create account' : 'Sign in'}</Text></Pressable>
         </View>
-        {/* Demo mode button completely removed */}
       </ScrollView>
     </View>
   );

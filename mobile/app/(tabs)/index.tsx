@@ -5,18 +5,16 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-n
 import React from 'react';
 import { FilterSummary, RadarMap, RideCard, SectionLabel } from '@/components/RadarUI';
 import { DriverView } from '@/src/components/DriverView';
-import { useDriver, formatNgn } from '@/context/DriverContext';
+import { useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
 export default function RadarScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { visibleRides, filters, rides, availablePlatforms, isListenerLive, isFeedLoading, listenerError, toggleListener, acceptRide, declineRide, lastSync, driver } = useDriver();
+  const { visibleRides, filters, availablePlatforms, isListenerLive, isFeedLoading, listenerError, toggleListener, acceptRide, declineRide, lastSync, driver } = useDriver();
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
   const pendingCount = visibleRides.length;
-  const todayAccepted = rides.filter((ride) => ride.status === 'accepted');
-  const todayTotal = todayAccepted.reduce((total, ride) => total + ride.fare, 0);
 
   return (
     <DriverView isLive={isListenerLive} isLoading={isFeedLoading} error={listenerError} newRide={visibleRides[0]} onToggle={toggleListener}>
@@ -27,20 +25,8 @@ export default function RadarScreen() {
             <Text style={[styles.title, { color: colors.foreground }]}>Good morning, driver.</Text>
           </View>
           <Pressable testID="profile-button" onPress={() => router.push('/auth')} style={[styles.avatar, { borderColor: colors.primary, backgroundColor: colors.accent }]}>
-            <Text style={[styles.avatarText, { color: colors.primary }]}>{driver.email.slice(0, 1).toUpperCase()}</Text>
+            <Text style={[styles.avatarText, { color: colors.primary }]}>{driver.email.slice(0, 1).toUpperCase() || 'D'}</Text>
           </Pressable>
-        </View>
-
-        <View style={[styles.earningsCard, { backgroundColor: colors.primary }]}>
-          <View>
-            <Text style={[styles.earningsEyebrow, { color: colors.primaryForeground }]}>TODAY'S ACCEPTED FARES</Text>
-            {/* FIX: Removed hardcoded 12400 fallback */}
-            <Text style={[styles.earningsValue, { color: colors.primaryForeground }]}>{formatNgn(todayTotal)}</Text>
-          </View>
-          <View style={[styles.earningsBadge, { backgroundColor: colors.primaryForeground }]}>
-            <Feather name="trending-up" size={13} color={colors.primary} />
-            <Text style={[styles.earningsBadgeText, { color: colors.primary }]}>+18%</Text>
-          </View>
         </View>
 
         <View style={styles.content}>
@@ -65,7 +51,7 @@ export default function RadarScreen() {
               </View>
             ))}
           </View>
-          <SectionLabel eyebrow="UNIFIED STREAM" title="Incoming requests" action="3 sources" />
+          <SectionLabel eyebrow="UNIFIED STREAM" title="Incoming requests" action={`${new Set(visibleRides.map((ride) => ride.platform)).size} sources`} />
           {visibleRides.length ? visibleRides.map((ride) => <RideCard key={ride.id} ride={ride} onAccept={() => acceptRide(ride.id)} onDecline={() => declineRide(ride.id)} />) : (
             <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <Feather name="radio" size={22} color={colors.primary} />
@@ -93,11 +79,6 @@ const styles = StyleSheet.create({
   statusLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1.1 },
   statusSub: { fontSize: 11, marginTop: 3 },
   toggle: { height: 32, width: 32, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  earningsCard: { marginHorizontal: 20, borderRadius: 20, padding: 18, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
-  earningsEyebrow: { fontSize: 9, fontWeight: '800', letterSpacing: 1.2, opacity: 0.72 },
-  earningsValue: { fontSize: 29, fontWeight: '800', marginTop: 4, letterSpacing: -1 },
-  earningsBadge: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 5 },
-  earningsBadgeText: { fontSize: 11, fontWeight: '800' },
   content: { paddingHorizontal: 20 },
   platformList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 19 },
   platformChip: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 11, paddingVertical: 8 },

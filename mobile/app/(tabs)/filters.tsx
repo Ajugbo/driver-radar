@@ -2,14 +2,14 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import React, { useState } from 'react';
-import { ProBadge, SectionLabel, SliderRail } from '@/components/RadarUI';
+import { SectionLabel, SliderRail } from '@/components/RadarUI';
 import { useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
 export default function FiltersScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { filters, updateFilters, isPro } = useDriver();
+  const { filters, updateFilters } = useDriver();
   const [zone, setZone] = useState('');
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
@@ -29,7 +29,6 @@ export default function FiltersScreen() {
             <Text style={[styles.kicker, { color: colors.primary }]}>CONTROL ROOM / 02</Text>
             <Text style={[styles.heading, { color: colors.foreground }]}>Smart filters</Text>
           </View>
-          <ProBadge />
         </View>
         <Text style={[styles.intro, { color: colors.mutedForeground }]}>Shape the requests that reach your radar. Changes apply instantly to every connected listener.</Text>
 
@@ -66,7 +65,6 @@ export default function FiltersScreen() {
             </Pressable>
           </View>
           {filters.minRating !== null ? <SliderRail value={filters.minRating} min={4} max={5} step={0.1} color={colors.warning} onChange={(value) => updateFilters({ minRating: Number(value.toFixed(1)) })} /> : null}
-          {!isPro ? <View style={[styles.lockRow, { backgroundColor: colors.muted }]}><Feather name="lock" size={12} color={colors.warning} /><Text style={[styles.lockText, { color: colors.mutedForeground }]}>Rating filters are part of Radar Pro</Text></View> : null}
         </View>
 
         <SectionLabel eyebrow="EXCLUSION ZONES" title="Blacklisted areas" action={`${filters.blacklistedZones.length} active`} />
@@ -105,8 +103,6 @@ const styles = StyleSheet.create({
   value: { fontSize: 15, fontWeight: '800' },
   switch: { width: 43, height: 25, borderRadius: 14, padding: 3, justifyContent: 'center' },
   switchKnob: { width: 19, height: 19, borderRadius: 10 },
-  lockRow: { flexDirection: 'row', alignItems: 'center', gap: 7, padding: 9, borderRadius: 9, marginTop: 13 },
-  lockText: { fontSize: 10, fontWeight: '600' },
   zoneInputRow: { flexDirection: 'row', gap: 9 },
   input: { flex: 1, height: 44, borderWidth: 1, borderRadius: 12, paddingHorizontal: 13, fontSize: 13 },
   addButton: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },

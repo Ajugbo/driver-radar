@@ -1,12 +1,21 @@
 import React from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
-import { Tabs } from 'expo-router';
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
+import { Redirect, Tabs } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
 export default function TabLayout() {
   const colors = useColors();
+  const { isHydrated, token } = useDriver();
+
+  if (!isHydrated) {
+    return <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={colors.primary} /></View>;
+  }
+
+  if (!token) return <Redirect href="/auth" />;
+
   return (
     <Tabs
       screenOptions={{

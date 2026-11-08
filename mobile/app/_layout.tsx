@@ -25,7 +25,6 @@ export default function RootLayout() {
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="auth" options={{ presentation: 'modal', headerShown: false }} />
-              <Stack.Screen name="paywall" options={{ presentation: 'modal', headerShown: false }} />
             </Stack>
           </DriverProvider>
         </ErrorBoundary>

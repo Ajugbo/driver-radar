@@ -70,10 +70,9 @@ export function RadarMap({ rides }: { rides: Ride[] }) {
         <Ionicons name="navigate" size={15} color={colors.primaryForeground} />
       </View>
       <View style={[styles.mapLabel, { backgroundColor: colors.background }]}>
-        <View style={[styles.liveDot, { backgroundColor: colors.success }]} />
-        <Text style={[styles.mapLabelText, { color: colors.foreground }]}>ABUJA • LIVE</Text>
+        <View style={[styles.liveDot, { backgroundColor: rides.length ? colors.success : colors.mutedForeground }]} />
+        <Text style={[styles.mapLabelText, { color: colors.foreground }]}>{rides.length ? `${rides.length} LIVE OFFERS` : 'NO LIVE OFFERS'}</Text>
       </View>
-      <Text style={[styles.mapScale, { color: colors.mutedForeground }]}>2 KM RADIUS</Text>
     </View>
   );
 }
@@ -146,9 +145,6 @@ export function FilterSummary({ filters }: { filters: Filters }) {
           {formatNgn(filters.minFare)} min  •  {filters.maxRadius.toFixed(1)} km max pickup
         </Text>
       </View>
-      <View style={[styles.filterCount, { borderColor: colors.primary }]}>
-        <Text style={[styles.filterCountText, { color: colors.primary }]}>4</Text>
-      </View>
     </View>
   );
 }
@@ -167,16 +163,6 @@ export function SliderRail({ value, min, max, step, color, onChange }: { value: 
         <Text style={[styles.sliderLabel, { color: colors.mutedForeground }]}>{max}</Text>
       </View>
     </Pressable>
-  );
-}
-
-export function ProBadge() {
-  const colors = useColors();
-  return (
-    <View style={[styles.proBadge, { backgroundColor: colors.accent }]}>
-      <Ionicons name="flash" size={12} color={colors.primary} />
-      <Text style={[styles.proBadgeText, { color: colors.primary }]}>PRO</Text>
-    </View>
   );
 }
 
@@ -200,7 +186,6 @@ const styles = StyleSheet.create({
   mapLabel: { position: 'absolute', top: 16, left: 16, flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 20 },
   liveDot: { width: 6, height: 6, borderRadius: 4 },
   mapLabelText: { fontFamily: 'monospace', fontSize: 10, fontWeight: '700', letterSpacing: 1.2 },
-  mapScale: { position: 'absolute', bottom: 15, right: 16, fontFamily: 'monospace', fontSize: 9, letterSpacing: 1.2, fontWeight: '700' },
   rideCard: { borderWidth: 1, borderRadius: 20, padding: 16, marginBottom: 12, shadowOpacity: 0.45, shadowRadius: 12, elevation: 6 },
   rideTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   sourceRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -229,14 +214,10 @@ const styles = StyleSheet.create({
   filterCopy: { flex: 1, marginLeft: 11 },
   filterSummaryTitle: { fontFamily: 'monospace', fontSize: 12, fontWeight: '700' },
   filterSummaryText: { fontFamily: 'monospace', fontSize: 11, marginTop: 3 },
-  filterCount: { width: 27, height: 27, borderWidth: 1, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  filterCountText: { fontFamily: 'monospace', fontSize: 12, fontWeight: '800' },
   sliderWrap: { marginTop: 14 },
   sliderTrack: { height: 5, borderRadius: 4, position: 'relative', justifyContent: 'center' },
   sliderFill: { height: 5, borderRadius: 4 },
   sliderThumb: { position: 'absolute', width: 17, height: 17, borderRadius: 10, marginLeft: -8, shadowOpacity: 0.5, shadowRadius: 8, elevation: 5 },
   sliderLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 9 },
   sliderLabel: { fontFamily: 'monospace', fontSize: 10 },
-  proBadge: { borderRadius: 7, paddingHorizontal: 7, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  proBadgeText: { fontFamily: 'monospace', fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
 });

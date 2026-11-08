@@ -10,6 +10,13 @@ export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
+export class ApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 async function request<T>(baseUrl: string, path: string, init?: RequestInit, service = 'Driver Radar'): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
     ...init,
@@ -20,7 +27,7 @@ async function request<T>(baseUrl: string, path: string, init?: RequestInit, ser
     },
   });
   const body = (await response.json()) as T & { error?: string };
-  if (!response.ok) throw new Error(body.error ?? `The ${service} API is unavailable`);
+  if (!response.ok) throw new ApiError(body.error ?? `The ${service} API is unavailable`, response.status);
   return body;
 }
 
@@ -36,6 +43,13 @@ export const api = {
   decision: (rideId: string, decision: 'accepted' | 'declined') => request(apiUrl, '/api/rides/decision', { method: 'POST', body: JSON.stringify({ rideId, decision }) }),
   preferences: (value: unknown) => request(apiUrl, '/api/preferences', { method: 'PATCH', body: JSON.stringify(value) }),
   platforms: () => request<PlatformDiscovery[]>(apiUrl, '/api/platforms'),
+  analytics: () => request<{
+    totalEarnings: number;
+    totalTrips: number;
+    acceptanceRate: number;
+    dailyEarnings: { day: string; amount: number }[];
+    maxDaily: number;
+  }>(apiUrl, '/api/analytics'),
 };
 
 export const driverApi = {
