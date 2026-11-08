@@ -1,9 +1,8 @@
-{
-  "build": {
-    "production": {
-      "android": {
-        "buildType": "apk"
-      }
+"build": {
+  "production": {
+    "env": {
+      "EXPO_PUBLIC_API_URL": "https://letsgo-backend-one.vercel.app",
+      "EXPO_PUBLIC_LETZGO_API_URL": "https://letsgo-backend-one.vercel.app"
     }
   }
 }
