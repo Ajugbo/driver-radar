@@ -1,3 +1,7 @@
+# In your EAS build job, add:
+env:
+  EXPO_PUBLIC_API_URL: https://letsgo-backend-one.vercel.app
+  EXPO_PUBLIC_LETZGO_API_URL: https://letsgo-backend-one.vercel.app
 name: Build Android APK (Native Gradle)
 
 on:
