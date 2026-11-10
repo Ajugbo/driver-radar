@@ -1,0 +1,29 @@
+diff --git a/.github/workflows/build-android-gradle.yml b/.github/workflows/build-android-gradle.yml
+--- a/.github/workflows/build-android-gradle.yml
++++ b/.github/workflows/build-android-gradle.yml
+@@ -11,5 +11,9 @@
+   build:
+     runs-on: ubuntu-latest
++    env:
++      EXPO_PUBLIC_API_URL: https://driver-radar.vercel.app
++      EXPO_PUBLIC_LETZGO_API_URL: https://letsgo-backend-one.vercel.app
++      GOOGLE_ANDROID_CLIENT_ID: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID }}
+     defaults:
+       run:
+         working-directory: mobile
+diff --git a/mobile/eas.json b/mobile/eas.json
+--- a/mobile/eas.json
++++ b/mobile/eas.json
+@@ -3,7 +3,12 @@
+     "production": {
++      "env": {
++        "EXPO_PUBLIC_API_URL": "https://driver-radar.vercel.app",
++        "EXPO_PUBLIC_LETZGO_API_URL": "https://letsgo-backend-one.vercel.app",
++        "GOOGLE_ANDROID_CLIENT_ID": "REPLACE_WITH_GOOGLE_ANDROID_CLIENT_ID"
++      },
+       "android": {
+         "buildType": "apk"
+       }
+     }
+   }
+ }
