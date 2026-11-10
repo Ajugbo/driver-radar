@@ -1,6 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
-import { db } from '../_lib/db'; // Adjust path to match your DB client
+import db from '../_lib/db'; // Adjust path to match your DB client
 
 const WEB_CLIENT_ID = process.env.GOOGLE_WEB_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET;

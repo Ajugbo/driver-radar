@@ -1,9 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.ts",
-      "use": "@vercel/node@latest"
-    }
-  ]
+  "installCommand": "npm ci --legacy-peer-deps",
+  "buildCommand": "npx tsc --noEmit"
 }
