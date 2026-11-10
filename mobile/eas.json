@@ -1,8 +1,22 @@
+<<<<<<< Updated upstream
 "build": {
   "production": {
     "env": {
       "EXPO_PUBLIC_API_URL": "https://letsgo-backend-one.vercel.app",
       "EXPO_PUBLIC_LETZGO_API_URL": "https://letsgo-backend-one.vercel.app"
+=======
+{
+  "build": {
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://driver-radar.vercel.app",
+        "EXPO_PUBLIC_LETZGO_API_URL": "https://letsgo-backend-one.vercel.app",
+        "GOOGLE_ANDROID_CLIENT_ID": "REPLACE_WITH_GOOGLE_ANDROID_CLIENT_ID"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+>>>>>>> Stashed changes
     }
   }
 }
