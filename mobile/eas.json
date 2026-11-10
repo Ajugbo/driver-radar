@@ -11,7 +11,7 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "https://driver-radar.vercel.app",
         "EXPO_PUBLIC_LETZGO_API_URL": "https://letsgo-backend-one.vercel.app",
-        "GOOGLE_ANDROID_CLIENT_ID": "REPLACE_WITH_GOOGLE_ANDROID_CLIENT_ID"
+        "GOOGLE_ANDROID_CLIENT_ID": "1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com"
       },
       "android": {
         "buildType": "apk"
