@@ -1,9 +1,10 @@
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
-import db from '../_lib/db'; // Adjust path to match your DB client
+import { db } from '../_lib/db'; // Adjust path to match your DB client
 
 const WEB_CLIENT_ID = process.env.GOOGLE_WEB_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error("JWT_SECRET env var is required");
 
 if (!WEB_CLIENT_ID || !JWT_SECRET) {
   throw new Error('GOOGLE_WEB_CLIENT_ID and JWT_SECRET must be set');
