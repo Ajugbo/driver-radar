@@ -1,4 +1,7 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuthRequest } from 'expo-auth-session/providers/google';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -15,7 +18,37 @@ export default function AuthScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+
+WebBrowser.maybeCompleteAuthSession();
+const [request, response, promptAsync] = useAuthRequest(
+  {
+    androidClientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com',
+    scopes: ['profile', 'email'],
+  },
+  {}
+);
   const [error, setError] = useState('');
+
+React.useEffect(() => {
+  if (response?.type === 'success') {
+    const { id_token } = response.params;
+    fetch('https://driver-radar.vercel.app/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: id_token }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.token) {
+          AsyncStorage.setItem('driverRadarToken', data.token);
+          router.replace('/(tabs)');
+        } else {
+          setError(data.error || 'Authentication failed');
+        }
+      })
+      .catch(() => setError('Network error'));
+  }
+}, [response]);
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
 
@@ -70,7 +103,7 @@ export default function AuthScreen() {
           
           <Pressable testID="submit-auth" onPress={submit} disabled={busy} style={({ pressed }) => [styles.submit, { backgroundColor: colors.primary, opacity: busy || pressed ? 0.65 : 1 }]}><Text style={[styles.submitText, { color: colors.primaryForeground }]}>{busy ? 'Connecting...' : mode === 'login' ? 'Sign in' : 'Create account'}</Text><Feather name="arrow-up-right" size={17} color={colors.primaryForeground} /></Pressable>
           
-          <Pressable testID="google-auth" onPress={() => setError('Google OAuth is scaffolded for the next provider connection. Use phone/password to sign in or email/password to register.')} style={[styles.google, { borderColor: colors.border }]}><Ionicons name="logo-google" size={16} color={colors.foreground} /><Text style={[styles.googleText, { color: colors.foreground }]}>Continue with Google</Text></Pressable>
+          <Pressable testID="google-auth" onPress={() => promptAsync()} disabled={!request} style={[styles.google, { borderColor: colors.border, opacity: !request ? 0.5 : 1 }]}><Ionicons name="logo-google" size={16} color={colors.foreground} /><Text style={[styles.googleText, { color: colors.foreground }]}>Continue with Google</Text></Pressable>
         </View>
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: colors.mutedForeground }]}>{mode === 'login' ? 'New to Driver Radar?' : 'Already have an account?'}</Text>
