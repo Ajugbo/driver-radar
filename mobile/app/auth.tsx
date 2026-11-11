@@ -1,5 +1,7 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthRequest } from 'expo-auth-session/providers/google';
 import { router } from 'expo-router';
@@ -19,7 +21,6 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
 
-WebBrowser.maybeCompleteAuthSession();
 const [request, response, promptAsync] = useAuthRequest(
   {
     androidClientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com',
