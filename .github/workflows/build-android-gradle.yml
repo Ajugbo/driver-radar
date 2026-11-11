@@ -47,13 +47,20 @@ jobs:
           npx expo prebuild --platform android --clean --no-install
 
           # Force inject OAuth intent filter directly into generated manifest
-          # Targets LAST </activity> before </application> to ensure MainActivity placement
+          # Always removes stale/orphaned references first to ensure correct placement
           node -e '
             const fs = require("fs");
             const path = "android/app/src/main/AndroidManifest.xml";
             let xml = fs.readFileSync(path, "utf8");
             
-            if (!xml.includes("oauthredirect") && xml.includes("com.ajugbo.driverradar.MainActivity")) {
+            // ALWAYS remove stale/orphaned oauthredirect references first
+            if (xml.includes("oauthredirect")) {
+              xml = xml.replace(/<intent-filter[^>]*>[\s\S]*?oauthredirect[\s\S]*?<\/intent-filter>/g, "");
+              console.log("🧹 Removed stale oauthredirect reference");
+            }
+            
+            // Now inject correctly into MainActivity
+            if (xml.includes("com.ajugbo.driverradar.MainActivity")) {
               const appEndIndex = xml.lastIndexOf("</application>");
               const activityCloseIndex = xml.lastIndexOf("</activity>", appEndIndex);
               
@@ -67,8 +74,6 @@ jobs:
                 console.error("❌ Could not locate MainActivity closing tag");
                 process.exit(1);
               }
-            } else if (xml.includes("oauthredirect")) {
-              console.log("ℹ️ OAuth intent filter already present");
             } else {
               console.error("❌ MainActivity not found in manifest");
               process.exit(1);
