@@ -47,7 +47,7 @@ jobs:
           npx expo prebuild --platform android --clean --no-install
 
           # Force inject OAuth intent filter directly into generated manifest
-          # Always removes stale/orphaned references first to ensure correct placement
+          # Uses regex to find ANY activity containing MainActivity; removes stale refs first
           node -e '
             const fs = require("fs");
             const path = "android/app/src/main/AndroidManifest.xml";
@@ -59,23 +59,22 @@ jobs:
               console.log("🧹 Removed stale oauthredirect reference");
             }
             
-            // Now inject correctly into MainActivity
-            if (xml.includes("com.ajugbo.driverradar.MainActivity")) {
-              const appEndIndex = xml.lastIndexOf("</application>");
-              const activityCloseIndex = xml.lastIndexOf("</activity>", appEndIndex);
+            // Find ANY activity tag containing MainActivity (handles .MainActivity or full package)
+            const mainActivityMatch = xml.match(/<activity[^>]*MainActivity[^>]*>([\s\S]*?)<\/activity>/);
+            
+            if (mainActivityMatch) {
+              const fullMatch = mainActivityMatch[0];
+              const lastCloseIndex = xml.lastIndexOf(fullMatch) + fullMatch.length;
               
-              if (activityCloseIndex !== -1) {
-                const filter = `\n        <intent-filter android:autoVerify="true">\n            <action android:name="android.intent.action.VIEW" />\n            <category android:name="android.intent.category.DEFAULT" />\n            <category android:name="android.intent.category.BROWSABLE" />\n            <data android:scheme="com.ajugbo.driverradar" android:host="oauthredirect" />\n        </intent-filter>`;
-                
-                xml = xml.substring(0, activityCloseIndex) + filter + xml.substring(activityCloseIndex);
-                fs.writeFileSync(path, xml);
-                console.log("✅ Injected OAuth intent filter into MainActivity");
-              } else {
-                console.error("❌ Could not locate MainActivity closing tag");
-                process.exit(1);
-              }
+              const filter = `\n        <intent-filter android:autoVerify="true">\n            <action android:name="android.intent.action.VIEW" />\n            <category android:name="android.intent.category.DEFAULT" />\n            <category android:name="android.intent.category.BROWSABLE" />\n            <data android:scheme="com.ajugbo.driverradar" android:host="oauthredirect" />\n        </intent-filter>`;
+              
+              xml = xml.substring(0, lastCloseIndex) + filter + xml.substring(lastCloseIndex);
+              fs.writeFileSync(path, xml);
+              console.log("✅ Injected OAuth intent filter into MainActivity");
             } else {
-              console.error("❌ MainActivity not found in manifest");
+              console.error("❌ No activity tag containing MainActivity found in manifest");
+              const activities = xml.match(/<activity[^>]*>[^<]*<\/activity>/g);
+              if (activities) console.error("Found activities:", activities);
               process.exit(1);
             }
           '
