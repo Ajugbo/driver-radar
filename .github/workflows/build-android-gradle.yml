@@ -47,24 +47,31 @@ jobs:
           npx expo prebuild --platform android --clean --no-install
 
           # Force inject OAuth intent filter directly into generated manifest
-          # Bypasses SDK 54 prebuild plugin validation issues
+          # Targets LAST </activity> before </application> to ensure MainActivity placement
           node -e '
             const fs = require("fs");
             const path = "android/app/src/main/AndroidManifest.xml";
-            if (!fs.existsSync(path)) { console.error("Manifest missing at:", path); process.exit(1); }
             let xml = fs.readFileSync(path, "utf8");
-            const filter = `<intent-filter android:autoVerify="true">
-                    <action android:name="android.intent.action.VIEW" />
-                    <category android:name="android.intent.category.DEFAULT" />
-                    <category android:name="android.intent.category.BROWSABLE" />
-                    <data android:scheme="com.ajugbo.driverradar" android:host="oauthredirect" />
-                </intent-filter>`;
-            if (!xml.includes("oauthredirect")) {
-              xml = xml.replace("</activity>", `${filter}\n            </activity>`);
-              fs.writeFileSync(path, xml);
-              console.log("✅ Injected OAuth intent filter for com.ajugbo.driverradar:/oauthredirect");
+            
+            if (!xml.includes("oauthredirect") && xml.includes("com.ajugbo.driverradar.MainActivity")) {
+              const appEndIndex = xml.lastIndexOf("</application>");
+              const activityCloseIndex = xml.lastIndexOf("</activity>", appEndIndex);
+              
+              if (activityCloseIndex !== -1) {
+                const filter = `\n        <intent-filter android:autoVerify="true">\n            <action android:name="android.intent.action.VIEW" />\n            <category android:name="android.intent.category.DEFAULT" />\n            <category android:name="android.intent.category.BROWSABLE" />\n            <data android:scheme="com.ajugbo.driverradar" android:host="oauthredirect" />\n        </intent-filter>`;
+                
+                xml = xml.substring(0, activityCloseIndex) + filter + xml.substring(activityCloseIndex);
+                fs.writeFileSync(path, xml);
+                console.log("✅ Injected OAuth intent filter into MainActivity");
+              } else {
+                console.error("❌ Could not locate MainActivity closing tag");
+                process.exit(1);
+              }
+            } else if (xml.includes("oauthredirect")) {
+              console.log("ℹ️ OAuth intent filter already present");
             } else {
-              console.log("ℹ️ OAuth intent filter already present in manifest");
+              console.error("❌ MainActivity not found in manifest");
+              process.exit(1);
             }
           '
 
