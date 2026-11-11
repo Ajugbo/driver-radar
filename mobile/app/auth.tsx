@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
-import Google from 'expo-auth-session/providers/google';
+import { useAuthRequest as useGoogleAuthRequest } from 'expo-auth-session/providers/google';;
 
 WebBrowser.maybeCompleteAuthSession();
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,17 +23,12 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
 
-const redirectUri = AuthSession.makeRedirectUri({
-  native: 'com.ajugbo.driverradar:/oauthredirect',
-});
-
-const [request, response, promptAsync] = Google.useAuthRequest(
+const [request, response, promptAsync] = useGoogleAuthRequest(
   {
     clientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com',
     androidClientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com',
     scopes: ['openid', 'profile', 'email'],
   },
-  { redirectUri }
 );
   const [error, setError] = useState('');
 
