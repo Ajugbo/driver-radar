@@ -1,7 +1,3 @@
-# In your EAS build job, add:
-env:
-  EXPO_PUBLIC_API_URL: https://letsgo-backend-one.vercel.app
-  EXPO_PUBLIC_LETZGO_API_URL: https://letsgo-backend-one.vercel.app
 name: Build Android APK (Native Gradle)
 
 on:
@@ -49,6 +45,28 @@ jobs:
 
           # Clean prebuild regenerates the Android project from Expo config
           npx expo prebuild --platform android --clean --no-install
+
+          # Force inject OAuth intent filter directly into generated manifest
+          # Bypasses SDK 54 prebuild plugin validation issues
+          node -e '
+            const fs = require("fs");
+            const path = "android/app/src/main/AndroidManifest.xml";
+            if (!fs.existsSync(path)) { console.error("Manifest missing at:", path); process.exit(1); }
+            let xml = fs.readFileSync(path, "utf8");
+            const filter = `<intent-filter android:autoVerify="true">
+                    <action android:name="android.intent.action.VIEW" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="android.intent.category.BROWSABLE" />
+                    <data android:scheme="com.ajugbo.driverradar" android:host="oauthredirect" />
+                </intent-filter>`;
+            if (!xml.includes("oauthredirect")) {
+              xml = xml.replace("</activity>", `${filter}\n            </activity>`);
+              fs.writeFileSync(path, xml);
+              console.log("✅ Injected OAuth intent filter for com.ajugbo.driverradar:/oauthredirect");
+            } else {
+              console.log("ℹ️ OAuth intent filter already present in manifest");
+            }
+          '
 
           # Generate production bundle into assets
           mkdir -p android/app/src/main/assets
