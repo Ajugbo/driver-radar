@@ -47,40 +47,74 @@ jobs:
           npx expo prebuild --platform android --clean --no-install
 
           # Force inject OAuth intent filter directly into generated manifest
-          # Uses simple string search instead of regex; removes stale refs first
+          # Uses XML tag depth tracking to guarantee placement INSIDE MainActivity
           node -e '
             const fs = require("fs");
             const path = "android/app/src/main/AndroidManifest.xml";
-            
+
+            function fail(message, xml) {
+              console.error("❌ Manifest injection failed:", message);
+              if (xml !== null) {
+                console.error("Manifest preview:\n" + xml.split("\n").slice(0, 100).join("\n"));
+              }
+              process.exit(1);
+            }
+
             try {
               let xml = fs.readFileSync(path, "utf8");
-              
+
               // ALWAYS remove stale/orphaned oauthredirect references first
               if (xml.includes("oauthredirect")) {
                 xml = xml.replace(/<intent-filter[^>]*>[\s\S]*?oauthredirect[\s\S]*?<\/intent-filter>/g, "");
                 console.log("🧹 Removed stale oauthredirect reference");
               }
-              
-              // Find last </activity> tag using simple string search
-              const activityCloseTag = "</activity>";
-              const lastActivityIndex = xml.lastIndexOf(activityCloseTag);
-              
-              if (lastActivityIndex === -1) {
-                throw new Error("No </activity> tag found in manifest");
+
+              const mainActivityOpenTag = /<activity(?=\s|>)(?=[^>]*\bandroid:name\s*=\s*"(?:\.MainActivity|com\.ajugbo\.driverradar\.MainActivity)")[^>]*>/g;
+              const match = mainActivityOpenTag.exec(xml);
+
+              if (!match) {
+                fail("MainActivity was not found", xml);
               }
-              
-              const filter = `\n        <intent-filter android:autoVerify="true">\n            <action android:name="android.intent.action.VIEW" />\n            <category android:name="android.intent.category.DEFAULT" />\n            <category android:name="android.intent.category.BROWSABLE" />\n            <data android:scheme="com.ajugbo.driverradar" android:host="oauthredirect" />\n        </intent-filter>`;
-              
-              xml = xml.substring(0, lastActivityIndex) + filter + xml.substring(lastActivityIndex);
+
+              const activityTags = /<\/?activity(?=\s|>)[^>]*>/g;
+              activityTags.lastIndex = mainActivityOpenTag.lastIndex;
+              let depth = 1;
+              let closingIndex = -1;
+              let tag;
+
+              while ((tag = activityTags.exec(xml)) !== null) {
+                if (/^<\/activity/.test(tag[0])) {
+                  depth--;
+                  if (depth === 0) {
+                    closingIndex = tag.index;
+                    break;
+                  }
+                } else if (!/\/\s*>$/.test(tag[0])) {
+                  depth++;
+                }
+              }
+
+              if (closingIndex === -1) {
+                fail("MainActivity closing </activity> tag was not found", xml);
+              }
+
+              const filter = `
+                  <intent-filter android:autoVerify="true">
+                      <action android:name="android.intent.action.VIEW" />
+                      <category android:name="android.intent.category.DEFAULT" />
+                      <category android:name="android.intent.category.BROWSABLE" />
+                      <data android:scheme="com.ajugbo.driverradar" android:host="oauthredirect" />
+                  </intent-filter>`;
+
+              xml = xml.slice(0, closingIndex) + filter + "\n    " + xml.slice(closingIndex);
               fs.writeFileSync(path, xml);
-              console.log("✅ Injected OAuth intent filter after last </activity> tag");
-              
+              console.log("✅ Injected OAuth intent filter inside MainActivity");
             } catch (err) {
-              console.error("❌ Manifest injection failed:", err.message);
-              // Print first 50 lines of manifest for debugging
-              const lines = fs.readFileSync(path, "utf8").split("\n").slice(0, 50).join("\n");
-              console.error("Manifest preview:\n", lines);
-              process.exit(1);
+              let xml = null;
+              try {
+                xml = fs.readFileSync(path, "utf8");
+              } catch {}
+              fail(err.message, xml);
             }
           '
 
