@@ -6,7 +6,23 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "android": {
-      "package": "com.ajugbo.driverradar"
+      "package": "com.ajugbo.driverradar",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "com.ajugbo.driverradar",
+              "host": "oauthredirect"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "plugins": [
       "expo-router",
