@@ -12,22 +12,7 @@
       "expo-router",
       "@react-native-google-signin/google-signin",
       "expo-web-browser",
-      [
-        "expo-intent-filter",
-        {
-          "filters": [
-            {
-              "action": "VIEW",
-              "autoVerify": true,
-              "data": {
-                "scheme": "com.ajugbo.driverradar",
-                "host": "oauthredirect"
-              },
-              "category": ["BROWSABLE", "DEFAULT"]
-            }
-          ]
-        }
-      ]
+      "./plugins/withOAuthRedirect"
     ],
     "experiments": {
       "typedRoutes": true
