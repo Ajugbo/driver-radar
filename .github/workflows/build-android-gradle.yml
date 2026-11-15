@@ -69,14 +69,12 @@ jobs:
           echo "APK files found:"
           ls -lah ../artifact
 
-            - name: Verify OAuth Intent Filter Structure
+      - name: Verify Manifest Content
         if: always()
+        continue-on-error: true
         run: |
-          echo "=== FULL MANIFEST INTENT FILTER DUMP ==="
-          unzip -p artifact/*.apk AndroidManifest.xml | strings -e l | grep -iE "intent|filter|scheme|ajugbo|driverradar|oauth|view|browsable" || echo "❌ NO RELEVANT STRINGS FOUND"
-          echo "========================================="
-          echo "=== RAW OAUTHREDIRECT SEARCH ==="
-          unzip -p artifact/*.apk AndroidManifest.xml | strings -e l | grep -C3 "oauthredirect" || echo "❌ oauthredirect NOT FOUND"
-          echo "========================================="          echo "=== MANIFEST STRUCTURE VERIFICATION ==="
-          unzip -p artifact/*.apk AndroidManifest.xml | strings -e l | grep -B5 -A5 "oauthredirect" || echo "❌ oauthredirect NOT FOUND IN MANIFEST"
-          echo "======================================="
+          echo "=== MANIFEST DIAGNOSTIC ==="
+          ls -la artifact/ || echo "No artifact directory found"
+          unzip -p artifact/*.apk AndroidManifest.xml > /tmp/manifest.bin 2>/dev/null || echo "Failed to extract manifest"
+          strings -e l /tmp/manifest.bin | grep -iE "intent|scheme|oauth|driverradar" | head -20 || echo "No relevant strings found"
+          echo "========================="
