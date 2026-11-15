@@ -69,16 +69,14 @@ jobs:
           echo "APK files found:"
           ls -lah ../artifact
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: driver-radar-debug-apk
-          path: artifact/*.apk
-          if-no-files-found: error
-
-      - name: Verify OAuth Intent Filter Structure
+            - name: Verify OAuth Intent Filter Structure
         if: always()
         run: |
-          echo "=== MANIFEST STRUCTURE VERIFICATION ==="
+          echo "=== FULL MANIFEST INTENT FILTER DUMP ==="
+          unzip -p artifact/*.apk AndroidManifest.xml | strings -e l | grep -iE "intent|filter|scheme|ajugbo|driverradar|oauth|view|browsable" || echo "❌ NO RELEVANT STRINGS FOUND"
+          echo "========================================="
+          echo "=== RAW OAUTHREDIRECT SEARCH ==="
+          unzip -p artifact/*.apk AndroidManifest.xml | strings -e l | grep -C3 "oauthredirect" || echo "❌ oauthredirect NOT FOUND"
+          echo "========================================="          echo "=== MANIFEST STRUCTURE VERIFICATION ==="
           unzip -p artifact/*.apk AndroidManifest.xml | strings -e l | grep -B5 -A5 "oauthredirect" || echo "❌ oauthredirect NOT FOUND IN MANIFEST"
           echo "======================================="
