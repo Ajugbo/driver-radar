@@ -6,28 +6,28 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "android": {
-      "package": "com.ajugbo.driverradar",
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "com.ajugbo.driverradar",
-              "host": "oauthredirect"
-            }
-          ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
-        }
-      ]
+      "package": "com.ajugbo.driverradar"
     },
     "plugins": [
       "expo-router",
       "@react-native-google-signin/google-signin",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-intent-filter",
+        {
+          "filters": [
+            {
+              "action": "VIEW",
+              "autoVerify": true,
+              "data": {
+                "scheme": "com.ajugbo.driverradar",
+                "host": "oauthredirect"
+              },
+              "category": ["BROWSABLE", "DEFAULT"]
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
