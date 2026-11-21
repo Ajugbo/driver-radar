@@ -3,8 +3,18 @@
         continue-on-error: true
         run: |
           echo "=== MANIFEST DIAGNOSTIC ==="
-          # The APK is in the artifact directory created by the previous step
-          ls -la mobile/artifact/ || echo "No artifact directory found in mobile/"
-          unzip -p mobile/artifact/*.apk AndroidManifest.xml > /tmp/manifest.bin 2>/dev/null || echo "Failed to extract manifest"
-          strings -e l /tmp/manifest.bin | grep -iE "intent|scheme|oauth|driverradar" | head -20 || echo "No relevant strings found"
+          # Try both possible locations
+          if [ -f artifact/app-debug.apk ]; then
+            APK_PATH="artifact/app-debug.apk"
+          elif [ -f mobile/artifact/app-debug.apk ]; then
+            APK_PATH="mobile/artifact/app-debug.apk"
+          else
+            echo "❌ APK not found in expected locations"
+            find . -name "*.apk" -type f
+            exit 0
+          fi
+          
+          echo "Using APK at: $APK_PATH"
+          unzip -p "$APK_PATH" AndroidManifest.xml > /tmp/manifest.bin 2>/dev/null
+          strings -e l /tmp/manifest.bin | grep -iE "intent|scheme|oauth|driverradar|view|browsable" | head -30
           echo "========================="
