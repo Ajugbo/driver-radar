@@ -1,93 +1,15 @@
-name: Build Android APK (Native Gradle)
-
-on:
-  workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'mobile/**'
-      - '.github/workflows/build-android-gradle.yml'
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    env:
-      EXPO_PUBLIC_API_URL: https://driver-radar.vercel.app
-      EXPO_PUBLIC_LETZGO_API_URL: https://letsgo-backend-one.vercel.app
-      GOOGLE_ANDROID_CLIENT_ID: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID }}
-    defaults:
-      run:
-        working-directory: mobile
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: mobile/package-lock.json
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Debug APK
-        working-directory: .
-        run: |
-          cd mobile
-
-          # Clean prebuild regenerates the Android project from Expo config
-          npx expo prebuild --platform android --clean --no-install
-
-          # Generate production bundle into assets
-          mkdir -p android/app/src/main/assets
-          npx react-native bundle \
-            --platform android \
-            --dev false \
-            --entry-file index.js \
-            --bundle-output android/app/src/main/assets/index.android.bundle \
-            --assets-dest android/app/src/main/res
-
-          # Build with Hermes + ARM64
-          cd android
-          ./gradlew assembleDebug --no-daemon \
-            -PreactNativeArchitectures=arm64-v8a \
-            -Pexpo.jsEngine=hermes
-
-      - name: Find and Prepare APK
-        run: |
-          mkdir -p ../artifact
-          find android/app/build/outputs/apk -type f -name "*.apk" -exec cp {} ../artifact/ \;
-          echo "APK files found:"
-          ls -lah ../artifact
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: driver-radar-debug-apk
-          path: artifact/*.apk
-          if-no-files-found: error
-
       - name: Verify Manifest Content
         if: always()
         continue-on-error: true
         run: |
           echo "=== MANIFEST DIAGNOSTIC ==="
-          # Check if the prebuild generated the manifest
-          if [ -f mobile/android/app/src/main/AndroidManifest.xml ]; then
+          # We are already in the 'mobile' directory due to defaults.run.working-directory
+          if [ -f android/app/src/main/AndroidManifest.xml ]; then
             echo "✅ Manifest found. Checking for oauthredirect..."
-            grep -iE "intent|scheme|oauth|driverradar|view|browsable" mobile/android/app/src/main/AndroidManifest.xml | head -30
+            grep -iE "intent|scheme|oauth|driverradar|view|browsable" android/app/src/main/AndroidManifest.xml | head -30
           else
-            echo "❌ Manifest not found in mobile/android/app/src/main/"
-            echo "Listing mobile directory contents:"
-            ls -la mobile/
+            echo "❌ Manifest not found at android/app/src/main/AndroidManifest.xml"
+            echo "Current directory contents:"
+            ls -la
           fi
           echo "========================="
