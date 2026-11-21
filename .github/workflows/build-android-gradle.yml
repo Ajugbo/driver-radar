@@ -3,18 +3,13 @@
         continue-on-error: true
         run: |
           echo "=== MANIFEST DIAGNOSTIC ==="
-          # Try both possible locations
-          if [ -f artifact/app-debug.apk ]; then
-            APK_PATH="artifact/app-debug.apk"
-          elif [ -f mobile/artifact/app-debug.apk ]; then
-            APK_PATH="mobile/artifact/app-debug.apk"
+          # Check if the prebuild generated the manifest
+          if [ -f mobile/android/app/src/main/AndroidManifest.xml ]; then
+            echo "✅ Manifest found. Checking for oauthredirect..."
+            grep -iE "intent|scheme|oauth|driverradar|view|browsable" mobile/android/app/src/main/AndroidManifest.xml | head -30
           else
-            echo "❌ APK not found in expected locations"
-            find . -name "*.apk" -type f
-            exit 0
+            echo "❌ Manifest not found in mobile/android/app/src/main/"
+            echo "Listing mobile directory contents:"
+            ls -la mobile/
           fi
-          
-          echo "Using APK at: $APK_PATH"
-          unzip -p "$APK_PATH" AndroidManifest.xml > /tmp/manifest.bin 2>/dev/null
-          strings -e l /tmp/manifest.bin | grep -iE "intent|scheme|oauth|driverradar|view|browsable" | head -30
           echo "========================="
