@@ -11,13 +11,6 @@ if (!WEB_CLIENT_ID) throw new Error('GOOGLE_WEB_CLIENT_ID must be set');
 
 const client = new OAuth2Client(WEB_CLIENT_ID);
 
-// Safely type the database response to satisfy TypeScript
-interface DriverRecord {
-  id: number | string;
-  email: string;
-  [key: string]: any;
-}
-
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -38,38 +31,46 @@ export default async function handler(req: any, res: any) {
     const db = getDb();
     if (!db) throw new Error('DATABASE_URL environment variable is required');
 
-    // 3. Find existing driver by email (Table is 'drivers')
-    const existing = await db.execute(sql`
-      SELECT * FROM drivers WHERE email = ${payload.email}
-    `) as { rows: DriverRecord[] };
+    // 3. Find existing user by email in the 'users' table (NOT drivers)
+    const existingUser = await db.execute(sql`
+      SELECT id, email, full_name, role FROM users WHERE email = ${payload.email}
+    `) as { rows: any[] };
     
-    let driver = existing.rows[0];
+    let user = existingUser.rows?.[0];
 
-    // 4. If driver doesn't exist, create them
-    if (!driver) {
-      const created = await db.execute(sql`
-        INSERT INTO drivers (email, password_hash, subscription_tier, currency)
-        VALUES (${payload.email}, NULL, 'free', 'NGN')
-        RETURNING *
-      `) as { rows: DriverRecord[] };
+    // 4. If user doesn't exist, create them in the 'users' table
+    if (!user) {
+      const createdUser = await db.execute(sql`
+        INSERT INTO users (email, password, role, full_name)
+        VALUES (${payload.email}, NULL, 'driver', ${payload.name || 'Driver'})
+        RETURNING id, email, full_name, role
+      `) as { rows: any[] };
       
-      driver = created.rows[0];
+      user = createdUser.rows?.[0];
+
+      // 5. Create a corresponding empty driver profile linked to this user
+      if (user) {
+        await db.execute(sql`
+          INSERT INTO drivers (user_id, status)
+          VALUES (${user.id}, 'pending')
+        `);
+      }
     }
 
-    // 5. Issue Driver Radar JWT
+    // 6. Issue Driver Radar JWT using the correct 'id' from the users table
     const token = jwt.sign(
-      { id: driver.id, email: driver.email, role: 'driver' },
+      { id: user.id, email: user.email, role: user.role },
       JWT_SECRET!,
       { expiresIn: '30d' }
     );
 
-    // 6. Return the token AND the driver object
+    // 7. Return the token AND the user object (mapped to 'driver' for frontend consistency)
     res.status(200).json({ 
       token, 
       driver: { 
-        id: driver.id, 
-        email: driver.email, 
-        name: payload.name || 'Driver' 
+        id: user.id, 
+        email: user.email, 
+        name: user.full_name || payload.name || 'Driver' 
       } 
     });
 
