@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, ActivityIndicator } from 'react-native';
+import { DriverProvider } from '@/context/DriverContext'; // 👈 ADDED THIS
 
 export default function RootLayout() {
   const router = useRouter();
@@ -11,7 +12,6 @@ export default function RootLayout() {
   const [hasToken, setHasToken] = useState(false);
 
   useEffect(() => {
-    // 1. Read the token ONCE when the app starts
     const checkAuth = async () => {
       try {
         const token = await AsyncStorage.getItem('driverRadarToken');
@@ -20,7 +20,6 @@ export default function RootLayout() {
         console.error('Failed to read auth token', error);
         setHasToken(false);
       } finally {
-        // 2. Only AFTER reading, allow the router to make decisions
         setIsHydrated(true);
       }
     };
@@ -29,21 +28,17 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    // 3. DO NOT redirect until hydration is complete
     if (!isHydrated) return;
 
     const inAuthGroup = segments[0] === 'auth';
 
     if (!hasToken && !inAuthGroup) {
-      // Not logged in, and not on auth screen -> go to auth
       router.replace('/auth');
     } else if (hasToken && inAuthGroup) {
-      // Logged in, but stuck on auth screen -> go to tabs
       router.replace('/(tabs)');
     }
   }, [isHydrated, hasToken, segments, router]);
 
-  // 4. Show a loading screen while checking storage (prevents the white flash)
   if (!isHydrated) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
@@ -53,9 +48,12 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="auth" />
-    </Stack>
+    // 👇 WRAP THE STACK IN THE PROVIDER
+    <DriverProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="auth" />
+      </Stack>
+    </DriverProvider>
   );
 }
