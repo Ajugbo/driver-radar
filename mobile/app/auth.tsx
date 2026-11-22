@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // 👈 Added useEffect
 import { useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
@@ -23,9 +23,19 @@ export default function AuthScreen() {
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const [error, setError] = useState('');
+  
+  // 👇 NEW: State to safely trigger navigation AFTER storage is confirmed
+  const [isReadyToNavigate, setIsReadyToNavigate] = useState(false);
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
+
+  // 👇 NEW: This effect ONLY runs when storage is successfully saved
+  useEffect(() => {
+    if (isReadyToNavigate) {
+      router.replace('/(tabs)');
+    }
+  }, [isReadyToNavigate]);
 
   const submit = async () => {
     setError('');
@@ -53,24 +63,34 @@ export default function AuthScreen() {
       const userInfo = await GoogleSignin.signIn();
       const idToken = userInfo.data?.idToken;
       if (!idToken) throw new Error('No ID token returned');
+      
       const res = await fetch('https://driver-radar.vercel.app/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken }),
       });
+      
       const data = await res.json();
-      if (data.token) {
+      
+      // 👇 ROBUST CHECK: Ensure token actually exists and is a valid string
+      if (data && typeof data.token === 'string' && data.token.trim().length > 0) {
+        
+        // 👇 1. AWAIT the storage write explicitly
         await AsyncStorage.setItem('driverRadarToken', data.token);
-        router.replace('/(tabs)');
+        
+        // 👇 2. ONLY set ready AFTER await confirms storage is done
+        setIsReadyToNavigate(true);
+        
       } else {
-        setError(data.error || 'Authentication failed');
+        // If the backend returned 200 but no token, show exactly what it sent
+        const keys = data ? Object.keys(data).join(', ') : 'none';
+        setError(`Auth failed: Missing token in response. Keys: [${keys}]`);
       }
-    } catch (err) {
-      const e = err;
-      if (e.code === statusCodes.SIGN_IN_CANCELLED) setError('Sign in cancelled');
-      else if (e.code === statusCodes.IN_PROGRESS) setError('Sign in already in progress');
-      else if (e.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) setError('Google Play Services unavailable');
-      else setError('Google Sign-In failed: ' + (e.message || 'Unknown error'));
+    } catch (err: any) {
+      if (err.code === statusCodes.SIGN_IN_CANCELLED) setError('Sign in cancelled');
+      else if (err.code === statusCodes.IN_PROGRESS) setError('Sign in already in progress');
+      else if (err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) setError('Google Play Services unavailable');
+      else setError('Google Sign-In failed: ' + (err.message || 'Unknown error'));
     } finally {
       setGoogleBusy(false);
     }
