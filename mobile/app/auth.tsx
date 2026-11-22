@@ -54,7 +54,7 @@ export default function AuthScreen() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
+    const handleGoogleSignIn = async () => {
     setError('');
     setGoogleBusy(true);
     try {
@@ -72,19 +72,26 @@ export default function AuthScreen() {
       
       const data = await res.json();
       
-      // 👇 ROBUST CHECK: Ensure token actually exists and is a valid string
       if (data && typeof data.token === 'string' && data.token.trim().length > 0) {
         
-        // 👇 1. AWAIT the storage write explicitly
+        // 1. Save the token
         await AsyncStorage.setItem('driverRadarToken', data.token);
         
-        // 👇 2. ONLY set ready AFTER await confirms storage is done
-        setIsReadyToNavigate(true);
+        // 2. Save the driver profile (tabs might be expecting this)
+        if (data.driver) {
+          await AsyncStorage.setItem('driverRadarDriver', JSON.stringify(data.driver));
+        }
+        
+        // 3. THE FIX: Micro-delay to let AsyncStorage and React state synchronize
+        // before Expo Router attempts to unmount this screen and mount (tabs).
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // 4. Use push instead of replace (more reliable for crossing group boundaries)
+        router.push('/(tabs)');
         
       } else {
-        // If the backend returned 200 but no token, show exactly what it sent
         const keys = data ? Object.keys(data).join(', ') : 'none';
-        setError(`Auth failed: Missing token in response. Keys: [${keys}]`);
+        setError(`Auth failed: Missing token. Keys: [${keys}]`);
       }
     } catch (err: any) {
       if (err.code === statusCodes.SIGN_IN_CANCELLED) setError('Sign in cancelled');
@@ -95,7 +102,7 @@ export default function AuthScreen() {
       setGoogleBusy(false);
     }
   };
-
+  
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: topInset + 18, paddingBottom: bottomInset + 30 }}>
