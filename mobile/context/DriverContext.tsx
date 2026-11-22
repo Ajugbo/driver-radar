@@ -54,6 +54,7 @@ interface DriverContextValue {
   declineRide: (id: string) => void;
   login: (phone: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
+  setAuth: (token: string, driver: any) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -162,6 +163,15 @@ export function DriverProvider({ children }: { children: ReactNode }) {
     setDriver(response.driver);
     await queryClient.invalidateQueries({ queryKey: ['rides'] });
   };
+
+  const setAuth = useCallback(async (newToken: string, newDriver: any) => {
+    await AsyncStorage.setItem(TOKEN_STORAGE_KEY, newToken);
+    setToken(newToken);
+    setAccessToken(newToken);
+    setDriver(newDriver);
+    await queryClient.invalidateQueries({ queryKey: ['rides'] });
+  }, [queryClient]);
+
   const signOut = useCallback(async () => {
     setToken(null);
     setAccessToken(null);
@@ -188,8 +198,9 @@ export function DriverProvider({ children }: { children: ReactNode }) {
     toggleListener: () => { setIsListenerLive((current) => !current); Haptics.selectionAsync().catch(() => undefined); },
     acceptRide: (id) => markRide(id, 'accepted'), declineRide: (id) => markRide(id, 'declined'),
     login: (phone, password) => authenticate('login', phone, password), register: (email, password) => authenticate('register', email, password),
+    setAuth,
     signOut,
-  }), [availablePlatforms, driver, filters, isHydrated, isListenerLive, lastSync, platforms, remoteRides.error, remoteRides.isLoading, rides, token, visibleRides]);
+  }), [availablePlatforms, driver, filters, isHydrated, isListenerLive, lastSync, platforms, remoteRides.error, remoteRides.isLoading, rides, token, visibleRides, setAuth]);
   return <DriverContext.Provider value={value}>{children}</DriverContext.Provider>;
 }
 
