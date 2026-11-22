@@ -28,22 +28,21 @@ export default function AuthScreen() {
     native: 'com.ajugbo.driverradar://oauthredirect',
   });
 
+    // Let expo-auth-session automatically generate the correct Reverse Client ID redirect URI
   const [request, response, promptAsync] = useGoogleAuthRequest(
     {
       clientId: '1042109660708-344vbt0keehimbl1m629it924pjtr9jo.apps.googleusercontent.com',
       androidClientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com',
-      redirectUri: redirectUri,
+      // DO NOT include redirectUri here. Let the library handle it.
       scopes: ['openid', 'profile', 'email'],
     },
   );
 
-  // 2. Add logging to see exactly what Google returns
   React.useEffect(() => {
     if (request) {
-      console.log('🔍 Generated Redirect URI:', redirectUri);
-      console.log('🔍 Full Google Auth URL:', request.url);
+      console.log('🔍 Auto-generated Google Auth URL:', request.url);
     }
-  }, [request, redirectUri]);
+  }, [request]);
 
   React.useEffect(() => {
     if (response) {
