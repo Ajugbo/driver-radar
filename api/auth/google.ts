@@ -1,7 +1,7 @@
 import { OAuth2Client } from 'google-auth-library';
 import { sql } from 'drizzle-orm';
 import jwt from 'jsonwebtoken';
-import { getDb } from '../_lib/db'; // Adjust path if your db file is elsewhere
+import { getDb } from '../_lib/db';
 
 const WEB_CLIENT_ID = process.env.GOOGLE_WEB_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -10,6 +10,13 @@ if (!JWT_SECRET) throw new Error('JWT_SECRET environment variable is required');
 if (!WEB_CLIENT_ID) throw new Error('GOOGLE_WEB_CLIENT_ID must be set');
 
 const client = new OAuth2Client(WEB_CLIENT_ID);
+
+// Safely type the database response to satisfy TypeScript
+interface DriverRecord {
+  id: number | string;
+  email: string;
+  [key: string]: any;
+}
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -31,21 +38,22 @@ export default async function handler(req: any, res: any) {
     const db = getDb();
     if (!db) throw new Error('DATABASE_URL environment variable is required');
 
-    // 3. Find existing driver by email (Table is 'drivers', not 'users')
+    // 3. Find existing driver by email (Table is 'drivers')
     const existing = await db.execute(sql`
       SELECT * FROM drivers WHERE email = ${payload.email}
-    `);
+    `) as { rows: DriverRecord[] };
     
-    let driver = existing.rows?.[0] || existing[0]; // Handle both Drizzle array and object returns
+    let driver = existing.rows[0];
 
-    // 4. If driver doesn't exist, create them in the 'drivers' table
+    // 4. If driver doesn't exist, create them
     if (!driver) {
       const created = await db.execute(sql`
         INSERT INTO drivers (email, password_hash, subscription_tier, currency)
         VALUES (${payload.email}, NULL, 'free', 'NGN')
         RETURNING *
-      `);
-      driver = created.rows?.[0] || created[0];
+      `) as { rows: DriverRecord[] };
+      
+      driver = created.rows[0];
     }
 
     // 5. Issue Driver Radar JWT
