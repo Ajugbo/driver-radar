@@ -1,10 +1,9 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import React, { useState, useEffect } from 'react'; // 👈 Added useEffect
+import React, { useState, useEffect } from 'react';
 import { useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
@@ -15,7 +14,7 @@ GoogleSignin.configure({
 export default function AuthScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { login, register } = useDriver();
+  const { login, register, setAuth } = useDriver();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [credential, setCredential] = useState('');
   const [password, setPassword] = useState('');
@@ -23,17 +22,14 @@ export default function AuthScreen() {
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const [error, setError] = useState('');
-  
-  // 👇 NEW: State to safely trigger navigation AFTER storage is confirmed
   const [isReadyToNavigate, setIsReadyToNavigate] = useState(false);
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
 
-  // 👇 NEW: This effect ONLY runs when storage is successfully saved
   useEffect(() => {
     if (isReadyToNavigate) {
-      router.replace('/(tabs)');
+      router.push('/(tabs)');
     }
   }, [isReadyToNavigate]);
 
@@ -54,7 +50,7 @@ export default function AuthScreen() {
     }
   };
 
-    const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = async () => {
     setError('');
     setGoogleBusy(true);
     try {
@@ -73,22 +69,9 @@ export default function AuthScreen() {
       const data = await res.json();
       
       if (data && typeof data.token === 'string' && data.token.trim().length > 0) {
-        
-        // 1. Save the token
-        await AsyncStorage.setItem('driverRadarToken', data.token);
-        
-        // 2. Save the driver profile (tabs might be expecting this)
-        if (data.driver) {
-          await AsyncStorage.setItem('driverRadarDriver', JSON.stringify(data.driver));
-        }
-        
-        // 3. THE FIX: Micro-delay to let AsyncStorage and React state synchronize
-        // before Expo Router attempts to unmount this screen and mount (tabs).
+        await setAuth(data.token, data.driver);
         await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // 4. Use push instead of replace (more reliable for crossing group boundaries)
-        router.push('/(tabs)');
-        
+        setIsReadyToNavigate(true);
       } else {
         const keys = data ? Object.keys(data).join(', ') : 'none';
         setError(`Auth failed: Missing token. Keys: [${keys}]`);
@@ -102,7 +85,7 @@ export default function AuthScreen() {
       setGoogleBusy(false);
     }
   };
-  
+
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: topInset + 18, paddingBottom: bottomInset + 30 }}>
