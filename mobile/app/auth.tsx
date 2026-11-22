@@ -23,42 +23,55 @@ export default function AuthScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  // 1. Explicitly force the redirect URI to match the Android Manifest exactly
+   // 1. Use double-slash (://) which is the Android standard for custom schemes
   const redirectUri = AuthSession.makeRedirectUri({
-    native: 'com.ajugbo.driverradar:/oauthredirect',
+    native: 'com.ajugbo.driverradar://oauthredirect',
   });
 
-  // 2. Use both Web and Android Client IDs correctly
   const [request, response, promptAsync] = useGoogleAuthRequest(
     {
-      clientId: '1042109660708-344vbt0keehimbl1m629it924pjtr9jo.apps.googleusercontent.com', // Web Client ID (for backend verification)
-      androidClientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com', // Android Client ID (for native app flow)
-      redirectUri: redirectUri, // Force the correct redirect URI
+      clientId: '1042109660708-344vbt0keehimbl1m629it924pjtr9jo.apps.googleusercontent.com',
+      androidClientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com',
+      redirectUri: redirectUri,
       scopes: ['openid', 'profile', 'email'],
     },
   );
 
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      fetch('https://driver-radar.vercel.app/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken: id_token }),
-      })
-        .then(r => r.json())
-        .then(data => {
-          if (data.token) {
-            AsyncStorage.setItem('driverRadarToken', data.token);
-            router.replace('/(tabs)');
-          } else {
-            setError(data.error || 'Authentication failed');
-          }
+  // 2. Add logging to see exactly what Google returns
+  React.useEffect(() => {
+    if (request) {
+      console.log('🔍 Generated Redirect URI:', redirectUri);
+      console.log('🔍 Full Google Auth URL:', request.url);
+    }
+  }, [request, redirectUri]);
+
+  React.useEffect(() => {
+    if (response) {
+      console.log('🔍 AuthSession Response:', JSON.stringify(response, null, 2));
+      
+      if (response.type === 'success') {
+        const { id_token } = response.params;
+        fetch('https://driver-radar.vercel.app/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: id_token }),
         })
-        .catch(() => setError('Network error'));
+          .then(r => r.json())
+          .then(data => {
+            if (data.token) {
+              AsyncStorage.setItem('driverRadarToken', data.token);
+              router.replace('/(tabs)');
+            } else {
+              setError(data.error || 'Authentication failed');
+            }
+          })
+          .catch(() => setError('Network error'));
+      } else if (response.type === 'error' || response.type === 'dismiss') {
+        setError(`Auth failed: ${response.type}`);
+      }
     }
   }, [response]);
-
+  
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
 
