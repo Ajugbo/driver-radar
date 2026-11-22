@@ -9,7 +9,9 @@ const withOAuthRedirect = (config) => {
     // Prevent duplicate insertion
     const alreadyExists = mainActivity['intent-filter']?.some((filter) =>
       filter?.data?.some(
-        (d) => d.$?.['android:scheme'] === 'com.ajugbo.driverradar'
+        (d) => 
+          d.$?.['android:scheme'] === 'com.googleusercontent.apps.1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot' ||
+          d.$?.['android:scheme'] === 'com.ajugbo.driverradar'
       )
     );
 
@@ -23,6 +25,14 @@ const withOAuthRedirect = (config) => {
         ],
         'data': [
           {
+            // 1. The Reverse Client ID (REQUIRED for androidClientId to work)
+            $: {
+              'android:scheme': 'com.googleusercontent.apps.1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot',
+              'android:host': 'oauthredirect',
+            },
+          },
+          {
+            // 2. Your custom scheme (kept as a backup)
             $: {
               'android:scheme': 'com.ajugbo.driverradar',
               'android:host': 'oauthredirect',
