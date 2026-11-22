@@ -1,16 +1,16 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
-import { useAuthRequest as useGoogleAuthRequest } from 'expo-auth-session/providers/google';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
 
-WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: '1042109660708-344vbt0keehimbl1m629it924pjtr9jo.apps.googleusercontent.com',
+});
 
 export default function AuthScreen() {
   const colors = useColors();
@@ -21,56 +21,9 @@ export default function AuthScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [error, setError] = useState('');
 
-   // 1. Use double-slash (://) which is the Android standard for custom schemes
-  const redirectUri = AuthSession.makeRedirectUri({
-    native: 'com.ajugbo.driverradar://oauthredirect',
-  });
-
-    // Let expo-auth-session automatically generate the correct Reverse Client ID redirect URI
-  const [request, response, promptAsync] = useGoogleAuthRequest(
-    {
-      clientId: '1042109660708-344vbt0keehimbl1m629it924pjtr9jo.apps.googleusercontent.com',
-      androidClientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com',
-      // DO NOT include redirectUri here. Let the library handle it.
-      scopes: ['openid', 'profile', 'email'],
-    },
-  );
-
-  React.useEffect(() => {
-    if (request) {
-      console.log('🔍 Auto-generated Google Auth URL:', request.url);
-    }
-  }, [request]);
-
-  React.useEffect(() => {
-    if (response) {
-      console.log('🔍 AuthSession Response:', JSON.stringify(response, null, 2));
-      
-      if (response.type === 'success') {
-        const { id_token } = response.params;
-        fetch('https://driver-radar.vercel.app/api/auth/google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken: id_token }),
-        })
-          .then(r => r.json())
-          .then(data => {
-            if (data.token) {
-              AsyncStorage.setItem('driverRadarToken', data.token);
-              router.replace('/(tabs)');
-            } else {
-              setError(data.error || 'Authentication failed');
-            }
-          })
-          .catch(() => setError('Network error'));
-      } else if (response.type === 'error' || response.type === 'dismiss') {
-        setError(`Auth failed: ${response.type}`);
-      }
-    }
-  }, [response]);
-  
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
 
@@ -91,13 +44,44 @@ export default function AuthScreen() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setGoogleBusy(true);
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      await GoogleSignin.signOut();
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo.data?.idToken;
+      if (!idToken) throw new Error('No ID token returned');
+      const res = await fetch('https://driver-radar.vercel.app/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+      const data = await res.json();
+      if (data.token) {
+        await AsyncStorage.setItem('driverRadarToken', data.token);
+        router.replace('/(tabs)');
+      } else {
+        setError(data.error || 'Authentication failed');
+      }
+    } catch (err) {
+      const e = err;
+      if (e.code === statusCodes.SIGN_IN_CANCELLED) setError('Sign in cancelled');
+      else if (e.code === statusCodes.IN_PROGRESS) setError('Sign in already in progress');
+      else if (e.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) setError('Google Play Services unavailable');
+      else setError('Google Sign-In failed: ' + (e.message || 'Unknown error'));
+    } finally {
+      setGoogleBusy(false);
+    }
+  };
+
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: topInset + 18, paddingBottom: bottomInset + 30 }}>
         <Pressable testID="close-auth" onPress={() => router.back()} style={styles.close}>
           <Feather name="x" size={20} color={colors.mutedForeground} />
         </Pressable>
-        
         <View style={styles.hero}>
           <View style={[styles.logo, { backgroundColor: colors.primary }]}>
             <Ionicons name="navigate" size={25} color={colors.primaryForeground} />
@@ -106,59 +90,26 @@ export default function AuthScreen() {
           <Text style={[styles.heading, { color: colors.foreground }]}>{mode === 'login' ? 'Welcome back.' : 'Join the network.'}</Text>
           <Text style={[styles.copy, { color: colors.mutedForeground }]}>{mode === 'login' ? 'Sign in to sync your filters, connections, and ride history.' : 'Create your driver account and start filtering the noise.'}</Text>
         </View>
-        
         <View style={styles.form}>
           <Text style={[styles.label, { color: colors.mutedForeground }]}>{mode === 'login' ? 'PHONE NUMBER' : 'EMAIL'}</Text>
-          <TextInput 
-            testID={mode === 'login' ? 'phone-input' : 'email-input'} 
-            value={credential} 
-            onChangeText={setCredential} 
-            autoCapitalize="none" 
-            keyboardType={mode === 'login' ? 'phone-pad' : 'email-address'} 
-            placeholder={mode === 'login' ? '+234 800 000 0000' : 'you@example.com'} 
-            placeholderTextColor={colors.mutedForeground} 
-            style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]} 
-          />
-          
+          <TextInput testID={mode === 'login' ? 'phone-input' : 'email-input'} value={credential} onChangeText={setCredential} autoCapitalize="none" keyboardType={mode === 'login' ? 'phone-pad' : 'email-address'} placeholder={mode === 'login' ? '+234 800 000 0000' : 'you@example.com'} placeholderTextColor={colors.mutedForeground} style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]} />
           <Text style={[styles.label, { color: colors.mutedForeground, marginTop: 14 }]}>PASSWORD</Text>
           <View style={[styles.passwordContainer, { borderColor: colors.border, backgroundColor: colors.card }]}>
-            <TextInput 
-              testID="password-input" 
-              value={password} 
-              onChangeText={setPassword} 
-              secureTextEntry={!showPassword} 
-              placeholder="Minimum 8 characters" 
-              placeholderTextColor={colors.mutedForeground} 
-              style={[styles.inputInner, { color: colors.foreground }]} 
-            />
+            <TextInput testID="password-input" value={password} onChangeText={setPassword} secureTextEntry={!showPassword} placeholder="Minimum 8 characters" placeholderTextColor={colors.mutedForeground} style={[styles.inputInner, { color: colors.foreground }]} />
             <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-              <Feather name={showPassword ? "eye" : "eye-off"} size={20} color={colors.mutedForeground} />
+              <Feather name={showPassword ? 'eye' : 'eye-off'} size={20} color={colors.mutedForeground} />
             </Pressable>
           </View>
-
           {error ? <Text style={[styles.error, { color: colors.destructive }]}>{error}</Text> : null}
-          
-          <Pressable 
-            testID="submit-auth" 
-            onPress={submit} 
-            disabled={busy} 
-            style={({ pressed }) => [styles.submit, { backgroundColor: colors.primary, opacity: busy || pressed ? 0.65 : 1 }]}
-          >
+          <Pressable testID="submit-auth" onPress={submit} disabled={busy} style={({ pressed }) => [styles.submit, { backgroundColor: colors.primary, opacity: busy || pressed ? 0.65 : 1 }]}>
             <Text style={[styles.submitText, { color: colors.primaryForeground }]}>{busy ? 'Connecting...' : mode === 'login' ? 'Sign in' : 'Create account'}</Text>
             <Feather name="arrow-up-right" size={17} color={colors.primaryForeground} />
           </Pressable>
-          
-          <Pressable 
-            testID="google-auth" 
-            onPress={() => promptAsync()} 
-            disabled={!request} 
-            style={[styles.google, { borderColor: colors.border, opacity: !request ? 0.5 : 1 }]}
-          >
+          <Pressable testID="google-auth" onPress={handleGoogleSignIn} disabled={googleBusy} style={[styles.google, { borderColor: colors.border, opacity: googleBusy ? 0.5 : 1 }]}>
             <Ionicons name="logo-google" size={16} color={colors.foreground} />
-            <Text style={[styles.googleText, { color: colors.foreground }]}>Continue with Google</Text>
+            <Text style={[styles.googleText, { color: colors.foreground }]}>{googleBusy ? 'Connecting...' : 'Continue with Google'}</Text>
           </Pressable>
         </View>
-        
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: colors.mutedForeground }]}>{mode === 'login' ? 'New to Driver Radar?' : 'Already have an account?'}</Text>
           <Pressable onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setCredential(''); setError(''); }}>
