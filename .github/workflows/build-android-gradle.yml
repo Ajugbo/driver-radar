@@ -89,18 +89,18 @@ jobs:
           fi
           echo "========================="
 
-      - name: Print APK SHA-1 Fingerprint (Foolproof)
+      - name: Print APK SHA-1 Fingerprint (Guaranteed)
         if: always()
         continue-on-error: true
         run: |
           echo "=== APK SHA-1 FINGERPRINT ==="
-          # Find the APK file anywhere in the workspace
           APK_PATH=$(find . -name "app-debug.apk" -type f | head -n 1)
           
           if [ -n "$APK_PATH" ]; then
             echo "✅ Found APK at: $APK_PATH"
-            echo "--- Full Certificate Output ---"
-            keytool -printcert -jarfile "$APK_PATH"
+            echo "--- Extracting Certificate ---"
+            # Extract the RSA signature file from inside the APK and print its details
+            unzip -p "$APK_PATH" 'META-INF/*.RSA' | keytool -printcert || echo "Failed to read certificate"
             echo "-------------------------------"
           else
             echo "❌ APK not found anywhere in workspace"
