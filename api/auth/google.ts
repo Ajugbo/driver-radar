@@ -31,46 +31,47 @@ export default async function handler(req: any, res: any) {
     const db = getDb();
     if (!db) throw new Error('DATABASE_URL environment variable is required');
 
-    // 3. Find existing user by email in the 'users' table (NOT drivers)
+    // 3. Find existing user by email. ONLY select columns guaranteed to exist.
     const existingUser = await db.execute(sql`
-      SELECT id, email, full_name, role FROM users WHERE email = ${payload.email}
+      SELECT id, email, role FROM users WHERE email = ${payload.email}
     `) as { rows: any[] };
     
     let user = existingUser.rows?.[0];
 
-    // 4. If user doesn't exist, create them in the 'users' table
+    // 4. If user doesn't exist, create them with minimal required fields
     if (!user) {
       const createdUser = await db.execute(sql`
-        INSERT INTO users (email, password, role, full_name)
-        VALUES (${payload.email}, NULL, 'driver', ${payload.name || 'Driver'})
-        RETURNING id, email, full_name, role
+        INSERT INTO users (email, password, role)
+        VALUES (${payload.email}, NULL, 'driver')
+        RETURNING id, email, role
       `) as { rows: any[] };
       
       user = createdUser.rows?.[0];
 
       // 5. Create a corresponding empty driver profile linked to this user
       if (user) {
+        // Use .catch() so it doesn't crash the whole login if the drivers table is missing/strict
         await db.execute(sql`
           INSERT INTO drivers (user_id, status)
           VALUES (${user.id}, 'pending')
-        `);
+        `).catch(err => console.log("Driver profile creation skipped:", err.message));
       }
     }
 
-    // 6. Issue Driver Radar JWT using the correct 'id' from the users table
+    // 6. Issue Driver Radar JWT using the correct 'id'
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       JWT_SECRET!,
       { expiresIn: '30d' }
     );
 
-    // 7. Return the token AND the user object (mapped to 'driver' for frontend consistency)
+    // 7. Return the token. Use Google's payload.name directly!
     res.status(200).json({ 
       token, 
       driver: { 
         id: user.id, 
         email: user.email, 
-        name: user.full_name || payload.name || 'Driver' 
+        name: payload.name || 'Driver' 
       } 
     });
 
