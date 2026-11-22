@@ -1,43 +1,25 @@
 const { AndroidConfig, withAndroidManifest } = require('@expo/config-plugins');
 
-// Define the plugin logic inline
 const withOAuthRedirect = (config) => {
   return withAndroidManifest(config, async (config) => {
-    const mainActivity = AndroidConfig.Manifest.getMainActivityOrThrow(
-      config.modResults
-    );
-
-    // Prevent duplicate insertion
+    const mainActivity = AndroidConfig.Manifest.getMainActivityOrThrow(config.modResults);
     const alreadyExists = mainActivity['intent-filter']?.some((filter) =>
-      filter?.data?.some(
-        (d) => d.$?.['android:scheme'] === 'com.ajugbo.driverradar'
-      )
+      filter?.data?.some((d) => d.$?.['android:scheme'] === 'com.ajugbo.driverradar')
     );
-
     if (!alreadyExists) {
-      const redirectFilter = {
-        $: { 'android:autoVerify': 'true' },
-        'action': [{ $: { 'android:name': 'android.intent.action.VIEW' } }],
-        'category': [
-          { $: { 'android:name': 'android.intent.category.DEFAULT' } },
-          { $: { 'android:name': 'android.intent.category.BROWSABLE' } },
-        ],
-        'data': [
-          {
-            $: {
-              'android:scheme': 'com.ajugbo.driverradar',
-              'android:host': 'oauthredirect',
-            },
-          },
-        ],
-      };
-
       mainActivity['intent-filter'] = [
         ...(mainActivity['intent-filter'] || []),
-        redirectFilter,
+        {
+          $: { 'android:autoVerify': 'true' },
+          action: [{ $: { 'android:name': 'android.intent.action.VIEW' } }],
+          category: [
+            { $: { 'android:name': 'android.intent.category.DEFAULT' } },
+            { $: { 'android:name': 'android.intent.category.BROWSABLE' } },
+          ],
+          data: [{ $: { 'android:scheme': 'com.ajugbo.driverradar', 'android:host': 'oauthredirect' } }],
+        },
       ];
     }
-
     return config;
   });
 };
@@ -50,19 +32,19 @@ module.exports = ({ config }) => {
     version: '1.0.0',
     orientation: 'portrait',
     scheme: 'driverradar',
-    android: {
-      package: 'com.ajugbo.driverradar',
-    },
+    android: { package: 'com.ajugbo.driverradar' },
     plugins: [
       'expo-router',
-      '@react-native-google-signin/google-signin',
+      [
+        '@react-native-google-signin/google-signin',
+        {
+          webClientId: '1042109660708-344vbt0keehimbl1m629it924pjtr9jo.apps.googleusercontent.com',
+          androidClientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com',
+        },
+      ],
       'expo-web-browser',
     ],
-    experiments: {
-      typedRoutes: true,
-    },
-    web: {
-      bundler: 'metro',
-    },
+    experiments: { typedRoutes: true },
+    web: { bundler: 'metro' },
   });
 };
