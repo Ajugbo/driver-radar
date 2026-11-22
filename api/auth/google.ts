@@ -31,47 +31,41 @@ export default async function handler(req: any, res: any) {
     const db = getDb();
     if (!db) throw new Error('DATABASE_URL environment variable is required');
 
-    // 3. Find existing user by email. ONLY select columns guaranteed to exist.
+    // 3. Find existing user by email (Using the CORRECT column 'name')
     const existingUser = await db.execute(sql`
-      SELECT id, email, role FROM users WHERE email = ${payload.email}
+      SELECT id, email, name, role FROM users WHERE email = ${payload.email}
     `) as { rows: any[] };
     
     let user = existingUser.rows?.[0];
 
-    // 4. If user doesn't exist, create them with minimal required fields
+    // 4. If user doesn't exist, create them (NO password column, added google_id)
     if (!user) {
       const createdUser = await db.execute(sql`
-        INSERT INTO users (email, password, role)
-        VALUES (${payload.email}, NULL, 'driver')
-        RETURNING id, email, role
+        INSERT INTO users (email, name, google_id, role)
+        VALUES (${payload.email}, ${payload.name || 'Driver'}, ${payload.sub}, 'driver')
+        RETURNING id, email, name, role
       `) as { rows: any[] };
       
       user = createdUser.rows?.[0];
-
-      // 5. Create a corresponding empty driver profile linked to this user
-      if (user) {
-        // Use .catch() so it doesn't crash the whole login if the drivers table is missing/strict
-        await db.execute(sql`
-          INSERT INTO drivers (user_id, status)
-          VALUES (${user.id}, 'pending')
-        `).catch(err => console.log("Driver profile creation skipped:", err.message));
-      }
     }
 
-    // 6. Issue Driver Radar JWT using the correct 'id'
+    // 5. Issue Driver Radar JWT
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       JWT_SECRET!,
       { expiresIn: '30d' }
     );
 
-    // 7. Return the token. Use Google's payload.name directly!
+    // 6. Return the token AND the driver object
+    // We hardcode subscriptionTier and currency here so the frontend DriverContext doesn't crash
     res.status(200).json({ 
       token, 
       driver: { 
         id: user.id, 
         email: user.email, 
-        name: payload.name || 'Driver' 
+        name: user.name || payload.name || 'Driver',
+        subscriptionTier: 'free',
+        currency: 'NGN'
       } 
     });
 
