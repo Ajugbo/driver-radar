@@ -89,15 +89,21 @@ jobs:
           fi
           echo "========================="
 
-      - name: Print APK SHA-1 Fingerprint
+      - name: Print APK SHA-1 Fingerprint (Foolproof)
         if: always()
         continue-on-error: true
         run: |
           echo "=== APK SHA-1 FINGERPRINT ==="
-          if [ -f ../artifact/app-debug.apk ]; then
-            keytool -printcert -jarfile ../artifact/app-debug.apk | grep -i "SHA1:" || echo "Failed to extract SHA-1"
+          # Find the APK file anywhere in the workspace
+          APK_PATH=$(find . -name "app-debug.apk" -type f | head -n 1)
+          
+          if [ -n "$APK_PATH" ]; then
+            echo "✅ Found APK at: $APK_PATH"
+            echo "--- Full Certificate Output ---"
+            keytool -printcert -jarfile "$APK_PATH"
+            echo "-------------------------------"
           else
-            echo "APK not found at ../artifact/app-debug.apk"
-            ls -la ../artifact/ || echo "artifact dir not found"
+            echo "❌ APK not found anywhere in workspace"
+            find . -name "*.apk" -type f
           fi
           echo "============================="
