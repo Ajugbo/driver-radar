@@ -1,17 +1,16 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
-import { useAuthRequest as useGoogleAuthRequest } from 'expo-auth-session/providers/google';;
-
-WebBrowser.maybeCompleteAuthSession();
+import { useAuthRequest as useGoogleAuthRequest } from 'expo-auth-session/providers/google';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAuthRequest } from 'expo-auth-session/providers/google';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDriver } from '@/context/DriverContext';
 import { useColors } from '@/hooks/useColors';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function AuthScreen() {
   const colors = useColors();
@@ -22,36 +21,44 @@ export default function AuthScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
-
-const [request, response, promptAsync] = useGoogleAuthRequest(
-  {
-    clientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com',
-    androidClientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com',
-    scopes: ['openid', 'profile', 'email'],
-  },
-);
   const [error, setError] = useState('');
 
-React.useEffect(() => {
-  if (response?.type === 'success') {
-    const { id_token } = response.params;
-    fetch('https://driver-radar.vercel.app/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: id_token }),
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.token) {
-          AsyncStorage.setItem('driverRadarToken', data.token);
-          router.replace('/(tabs)');
-        } else {
-          setError(data.error || 'Authentication failed');
-        }
+  // 1. Explicitly force the redirect URI to match the Android Manifest exactly
+  const redirectUri = AuthSession.makeRedirectUri({
+    native: 'com.ajugbo.driverradar:/oauthredirect',
+  });
+
+  // 2. Use both Web and Android Client IDs correctly
+  const [request, response, promptAsync] = useGoogleAuthRequest(
+    {
+      clientId: '1042109660708-344vbt0keehimbl1m629it924pjtr9jo.apps.googleusercontent.com', // Web Client ID (for backend verification)
+      androidClientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com', // Android Client ID (for native app flow)
+      redirectUri: redirectUri, // Force the correct redirect URI
+      scopes: ['openid', 'profile', 'email'],
+    },
+  );
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { id_token } = response.params;
+      fetch('https://driver-radar.vercel.app/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: id_token }),
       })
-      .catch(() => setError('Network error'));
-  }
-}, [response]);
+        .then(r => r.json())
+        .then(data => {
+          if (data.token) {
+            AsyncStorage.setItem('driverRadarToken', data.token);
+            router.replace('/(tabs)');
+          } else {
+            setError(data.error || 'Authentication failed');
+          }
+        })
+        .catch(() => setError('Network error'));
+    }
+  }, [response]);
+
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
 
@@ -75,16 +82,31 @@ React.useEffect(() => {
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: topInset + 18, paddingBottom: bottomInset + 30 }}>
-        <Pressable testID="close-auth" onPress={() => router.back()} style={styles.close}><Feather name="x" size={20} color={colors.mutedForeground} /></Pressable>
+        <Pressable testID="close-auth" onPress={() => router.back()} style={styles.close}>
+          <Feather name="x" size={20} color={colors.mutedForeground} />
+        </Pressable>
+        
         <View style={styles.hero}>
-          <View style={[styles.logo, { backgroundColor: colors.primary }]}><Ionicons name="navigate" size={25} color={colors.primaryForeground} /></View>
+          <View style={[styles.logo, { backgroundColor: colors.primary }]}>
+            <Ionicons name="navigate" size={25} color={colors.primaryForeground} />
+          </View>
           <Text style={[styles.kicker, { color: colors.primary }]}>DRIVER RADAR</Text>
           <Text style={[styles.heading, { color: colors.foreground }]}>{mode === 'login' ? 'Welcome back.' : 'Join the network.'}</Text>
           <Text style={[styles.copy, { color: colors.mutedForeground }]}>{mode === 'login' ? 'Sign in to sync your filters, connections, and ride history.' : 'Create your driver account and start filtering the noise.'}</Text>
         </View>
+        
         <View style={styles.form}>
           <Text style={[styles.label, { color: colors.mutedForeground }]}>{mode === 'login' ? 'PHONE NUMBER' : 'EMAIL'}</Text>
-          <TextInput testID={mode === 'login' ? 'phone-input' : 'email-input'} value={credential} onChangeText={setCredential} autoCapitalize="none" keyboardType={mode === 'login' ? 'phone-pad' : 'email-address'} placeholder={mode === 'login' ? '+234 800 000 0000' : 'you@example.com'} placeholderTextColor={colors.mutedForeground} style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]} />
+          <TextInput 
+            testID={mode === 'login' ? 'phone-input' : 'email-input'} 
+            value={credential} 
+            onChangeText={setCredential} 
+            autoCapitalize="none" 
+            keyboardType={mode === 'login' ? 'phone-pad' : 'email-address'} 
+            placeholder={mode === 'login' ? '+234 800 000 0000' : 'you@example.com'} 
+            placeholderTextColor={colors.mutedForeground} 
+            style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]} 
+          />
           
           <Text style={[styles.label, { color: colors.mutedForeground, marginTop: 14 }]}>PASSWORD</Text>
           <View style={[styles.passwordContainer, { borderColor: colors.border, backgroundColor: colors.card }]}>
@@ -104,13 +126,32 @@ React.useEffect(() => {
 
           {error ? <Text style={[styles.error, { color: colors.destructive }]}>{error}</Text> : null}
           
-          <Pressable testID="submit-auth" onPress={submit} disabled={busy} style={({ pressed }) => [styles.submit, { backgroundColor: colors.primary, opacity: busy || pressed ? 0.65 : 1 }]}><Text style={[styles.submitText, { color: colors.primaryForeground }]}>{busy ? 'Connecting...' : mode === 'login' ? 'Sign in' : 'Create account'}</Text><Feather name="arrow-up-right" size={17} color={colors.primaryForeground} /></Pressable>
+          <Pressable 
+            testID="submit-auth" 
+            onPress={submit} 
+            disabled={busy} 
+            style={({ pressed }) => [styles.submit, { backgroundColor: colors.primary, opacity: busy || pressed ? 0.65 : 1 }]}
+          >
+            <Text style={[styles.submitText, { color: colors.primaryForeground }]}>{busy ? 'Connecting...' : mode === 'login' ? 'Sign in' : 'Create account'}</Text>
+            <Feather name="arrow-up-right" size={17} color={colors.primaryForeground} />
+          </Pressable>
           
-          <Pressable testID="google-auth" onPress={() => promptAsync()} disabled={!request} style={[styles.google, { borderColor: colors.border, opacity: !request ? 0.5 : 1 }]}><Ionicons name="logo-google" size={16} color={colors.foreground} /><Text style={[styles.googleText, { color: colors.foreground }]}>Continue with Google</Text></Pressable>
+          <Pressable 
+            testID="google-auth" 
+            onPress={() => promptAsync()} 
+            disabled={!request} 
+            style={[styles.google, { borderColor: colors.border, opacity: !request ? 0.5 : 1 }]}
+          >
+            <Ionicons name="logo-google" size={16} color={colors.foreground} />
+            <Text style={[styles.googleText, { color: colors.foreground }]}>Continue with Google</Text>
+          </Pressable>
         </View>
+        
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: colors.mutedForeground }]}>{mode === 'login' ? 'New to Driver Radar?' : 'Already have an account?'}</Text>
-          <Pressable onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setCredential(''); setError(''); }}><Text style={[styles.footerLink, { color: colors.primary }]}>{mode === 'login' ? 'Create account' : 'Sign in'}</Text></Pressable>
+          <Pressable onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setCredential(''); setError(''); }}>
+            <Text style={[styles.footerLink, { color: colors.primary }]}>{mode === 'login' ? 'Create account' : 'Sign in'}</Text>
+          </Pressable>
         </View>
       </ScrollView>
     </View>
