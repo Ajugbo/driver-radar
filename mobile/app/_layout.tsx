@@ -6,13 +6,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DriverProvider } from '@/context/DriverContext';
 
-// Create QueryClient ONCE outside component to prevent re-creation on every render
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
+    queries: { retry: 1, staleTime: 5 * 60 * 1000 },
   },
 });
 
@@ -26,7 +22,8 @@ export default function RootLayout() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = await AsyncStorage.getItem('driverRadarToken');
+        // 👇 FIX: Use the EXACT same key as DriverContext and auth.tsx
+        const token = await AsyncStorage.getItem('@driver-radar/token');
         setHasToken(!!token);
       } catch (error) {
         console.error('Failed to read auth token', error);
@@ -51,7 +48,6 @@ export default function RootLayout() {
     }
   }, [isHydrated, hasToken, segments, router]);
 
-  // Show loading screen while checking storage - prevents white flash & context errors
   if (!isHydrated) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
@@ -61,7 +57,6 @@ export default function RootLayout() {
   }
 
   return (
-    // CORRECT NESTING ORDER: SafeArea → QueryClient → DriverContext → Stack
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <DriverProvider>
