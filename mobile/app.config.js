@@ -40,6 +40,8 @@ module.exports = ({ config }) => {
         {
           webClientId: '1042109660708-344vbt0keehimbl1m629it924pjtr9jo.apps.googleusercontent.com',
           androidClientId: '1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot.apps.googleusercontent.com',
+          // Required by the plugin when not using Firebase, even for Android-only builds
+          iosUrlScheme: 'com.googleusercontent.apps.1042109660708-pn4c4g5b4crjeqs906ehruj72u5ol1ot',
         },
       ],
       'expo-web-browser',
