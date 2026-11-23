@@ -185,12 +185,14 @@ export function DriverProvider({ children }: { children: ReactNode }) {
       AsyncStorage.removeItem(PLATFORMS_STORAGE_KEY),
     ]);
   }, [queryClient]);
+
+  // A ride-feed 401 must NEVER destroy the login session.
   useEffect(() => {
     if (remoteRides.error instanceof ApiError && remoteRides.error.status === 401) {
-      console.warn('[Auth] Server rejected the saved session token.');
-      signOut().catch((error) => console.error('[Auth] Failed to clear rejected session', error));
+      console.warn('[Rides] Feed rejected token (401). Keeping session alive.');
     }
-  }, [remoteRides.error, signOut]);
+  }, [remoteRides.error]);
+
   const value = useMemo<DriverContextValue>(() => ({
     rides, visibleRides, filters, platforms, availablePlatforms, driver, token, isHydrated, isListenerLive, isFeedLoading: Boolean(token) && remoteRides.isLoading, listenerError: remoteRides.error instanceof Error ? remoteRides.error.message : remoteRides.error ? 'Live ride feed unavailable.' : null, lastSync,
     updateFilters: (next) => { updateFilters(next); if (token) api.preferences(next).catch(() => undefined); },
