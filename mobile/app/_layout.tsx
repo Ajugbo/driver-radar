@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -13,40 +13,22 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  const router = useRouter();
-  const segments = useSegments();
-  
   const [isHydrated, setIsHydrated] = useState(false);
-  const [hasToken, setHasToken] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    // Just wait for storage to be readable before rendering the app
+    const checkStorage = async () => {
       try {
-        // 👇 FIX: Use the EXACT same key as DriverContext and auth.tsx
-        const token = await AsyncStorage.getItem('@driver-radar/token');
-        setHasToken(!!token);
+        await AsyncStorage.getItem('@driver-radar/token');
       } catch (error) {
-        console.error('Failed to read auth token', error);
-        setHasToken(false);
+        console.error('Storage check failed', error);
       } finally {
         setIsHydrated(true);
       }
     };
     
-    checkAuth();
+    checkStorage();
   }, []);
-
-  useEffect(() => {
-    if (!isHydrated) return;
-
-    const inAuthGroup = segments[0] === 'auth';
-
-    if (!hasToken && !inAuthGroup) {
-      router.replace('/auth');
-    } else if (hasToken && inAuthGroup) {
-      router.replace('/(tabs)');
-    }
-  }, [isHydrated, hasToken, segments, router]);
 
   if (!isHydrated) {
     return (
