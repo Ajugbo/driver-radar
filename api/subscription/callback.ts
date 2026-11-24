@@ -6,6 +6,7 @@ const SECRET = process.env.PAYSTACK_SECRET_KEY;
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   const reference = String(req.query?.reference || '');
+  
   try {
     const r = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, { 
       headers: { Authorization: `Bearer ${SECRET}` } 
@@ -26,10 +27,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
     
     cors(res);
-    const html = `<html><body style="font-family:sans-serif;background:#020617;color:#e2e8f0;display:grid;place-items:center;height:100vh"><div style="text-align:center"><h1>${ok ? 'Payment successful' : 'Payment not confirmed'}</h1><p>Return to the Driver Radar app and tap "Refresh status".</p></div></body></html>`;
     res.setHeader('Content-Type', 'text/html');
-    res.status(200).end(html);
-  } catch { 
-    res.status(500).end('Verification error'); 
+    res.write(`<html><body style="font-family:sans-serif;background:#020617;color:#e2e8f0;display:grid;place-items:center;height:100vh"><div style="text-align:center"><h1>${ok ? 'Payment successful' : 'Payment not confirmed'}</h1><p>Return to the Driver Radar app and tap "Refresh status".</p></div></body></html>`);
+    res.status(200).end();
+  } catch (e) {
+    console.error('Callback verification error:', e);
+    res.status(500).end();
   }
 }
