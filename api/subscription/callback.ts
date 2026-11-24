@@ -27,11 +27,12 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
     
     cors(res);
-    res.setHeader('Content-Type', 'text/html');
-    res.write(`<html><body style="font-family:sans-serif;background:#020617;color:#e2e8f0;display:grid;place-items:center;height:100vh"><div style="text-align:center"><h1>${ok ? 'Payment successful' : 'Payment not confirmed'}</h1><p>Return to the Driver Radar app and tap "Refresh status".</p></div></body></html>`);
-    res.status(200).end();
+    res.status(200).json({ 
+      success: ok, 
+      message: ok ? 'Payment verified successfully. Return to app and refresh status.' : 'Payment verification failed.' 
+    });
   } catch (e) {
     console.error('Callback verification error:', e);
-    res.status(500).end();
+    res.status(500).json({ success: false, message: 'Verification error' });
   }
 }
