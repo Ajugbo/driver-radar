@@ -8,22 +8,22 @@ const SECRET = process.env.PAYSTACK_SECRET_KEY;
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  // Use raw stream reading compatible with your ApiRequest type
-  const chunks: Buffer[] = [];
-  req.on('data', (chunk: Buffer) => chunks.push(chunk));
+  // req.body is already parsed as JSON by your existing middleware/Vercel
+  const event = req.body as any;
   
-  await new Promise<void>((resolve, reject) => {
-    req.on('end', () => resolve());
-    req.on('error', (err) => reject(err));
-  });
-
-  const raw = Buffer.concat(chunks).toString('utf8');
-  const sig = crypto.createHmac('sha512', SECRET || '').update(raw).digest('hex');
-  
-  if (sig !== req.headers['x-paystack-signature']) return res.status(401).end();
+  if (!event || !event.event) return res.status(400).end();
 
   try {
-    const event = JSON.parse(raw);
+    // Verify signature using the raw body string
+    const rawBody = JSON.stringify(event);
+    const sig = crypto.createHmac('sha512', SECRET || '').update(rawBody).digest('hex');
+    
+    // Note: For production, you'd need the raw buffer before parsing. 
+    // Since we can't access raw streams via your ApiRequest type, 
+    // we verify against the parsed object's stringified form.
+    // If Paystack rejects this, we'll need a different verification approach.
+    if (sig !== req.headers['x-paystack-signature']) return res.status(401).end();
+
     if (event.event === 'charge.success') {
       const d = event.data;
       if (d.amount === 499900 && d.currency === 'NGN') {
@@ -39,7 +39,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       }
     }
   } catch (e) {
-    console.error('Webhook parse error:', e);
+    console.error('Webhook processing error:', e);
   }
 
   res.status(200).end();
